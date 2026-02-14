@@ -1,12 +1,14 @@
 using UnityEngine;
 using UnityEngine.InputSystem;
+using System;
 
-public class ReadPlayerInput: MonoBehaviour
+public class ReadPlayerInput : MonoBehaviour
 {
     public Vector2 MoveInput { get; private set; }
     public bool IsRunPressed { get; private set; }
-    public bool IsCrouchPressed { get; private set; }
-    public bool IsJumpPressed { get; private set; }
+
+    public event Action OnCrouchPressed;
+    public event Action OnJumpPressed;
 
     public void OnMove(InputAction.CallbackContext context)
     {
@@ -28,24 +30,12 @@ public class ReadPlayerInput: MonoBehaviour
     public void OnCrouch(InputAction.CallbackContext context)
     {
         if (context.started)
-        {
-            IsCrouchPressed = true;
-        }
-        else if (context.canceled)
-        {
-            IsCrouchPressed = false;
-        }
+            OnCrouchPressed?.Invoke();
     }
 
     public void OnJump(InputAction.CallbackContext context)
     {
         if (context.started)
-        {
-            IsJumpPressed = true;
-        }
-        else if (context.canceled)
-        {
-            IsJumpPressed = false;
-        }
+            OnJumpPressed?.Invoke();
     }
 }

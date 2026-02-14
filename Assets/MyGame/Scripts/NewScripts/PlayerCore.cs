@@ -7,4 +7,6 @@ public class PlayerCore
     {
         m_status = status;
     }
+
+    public bool IsDead => m_status.Hp <= 0;
 }

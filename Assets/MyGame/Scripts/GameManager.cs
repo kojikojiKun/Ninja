@@ -24,7 +24,7 @@ public class GameManager : MonoBehaviour
     private void Start()
     {
         // テスト用.
-        GameStart();
+        //GameStart();
     }
 
     //ゲーム開始時に実行.

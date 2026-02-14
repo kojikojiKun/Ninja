@@ -1,4 +1,5 @@
 {
+    "version": 1,
     "name": "Controls",
     "maps": [
         {
@@ -94,6 +95,15 @@
                     "processors": "",
                     "interactions": "",
                     "initialStateCheck": false
+                },
+                {
+                    "name": "Look",
+                    "type": "Value",
+                    "id": "d982ff71-4a15-4950-8534-c422fffd9540",
+                    "expectedControlType": "Vector2",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": true
                 }
             ],
             "bindings": [
@@ -404,6 +414,17 @@
                     "action": "GrapplingHook",
                     "isComposite": false,
                     "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "2d9d80aa-d6fd-4aa0-83b8-bdb375e37944",
+                    "path": "<Mouse>/delta",
+                    "interactions": "",
+                    "processors": "DeltaTimeScale,InvertVector2(invertX=false),ScaleVector2(x=0.5,y=0.5)",
+                    "groups": "",
+                    "action": "Look",
+                    "isComposite": false,
+                    "isPartOfComposite": false
                 }
             ]
         },
@@ -617,45 +638,6 @@
                     "processors": "",
                     "groups": "",
                     "action": "CloseMenu",
-                    "isComposite": false,
-                    "isPartOfComposite": false
-                }
-            ]
-        },
-        {
-            "name": "Camera",
-            "id": "006dc661-bdbd-44d0-8091-8b016205388e",
-            "actions": [
-                {
-                    "name": "Look",
-                    "type": "Value",
-                    "id": "93ca7f2f-3820-4614-bd05-77f68e1a4542",
-                    "expectedControlType": "Vector2",
-                    "processors": "",
-                    "interactions": "",
-                    "initialStateCheck": true
-                }
-            ],
-            "bindings": [
-                {
-                    "name": "",
-                    "id": "365c62b9-ddda-44e6-997a-efa324735982",
-                    "path": "<Mouse>/delta",
-                    "interactions": "",
-                    "processors": "",
-                    "groups": "",
-                    "action": "Look",
-                    "isComposite": false,
-                    "isPartOfComposite": false
-                },
-                {
-                    "name": "",
-                    "id": "68bc3293-611b-4a64-97c1-ce2a91b0279a",
-                    "path": "<Gamepad>/rightStick",
-                    "interactions": "",
-                    "processors": "",
-                    "groups": "",
-                    "action": "Look",
                     "isComposite": false,
                     "isPartOfComposite": false
                 }

@@ -29,7 +29,7 @@ public class PlayerMotor : IControllable
     {
         m_currentSpeed = Mathf.MoveTowards(
             m_currentSpeed,
-            m_targetSpeed,
+            0f,
             m_status.Deceleration * Time.deltaTime
             );
     }
@@ -42,23 +42,22 @@ public class PlayerMotor : IControllable
             m_status.TurnSpeed * Time.deltaTime,
             0f
             );
+
+            m_controller.transform.rotation=Quaternion.LookRotation( desierdForward );
     }
 
-    void FreeFall()
+    Vector3 FreeFall()
     {
-        m_velocity_Y += GRAVITY * Time.deltaTime;
-        m_controller.Move(Vector3.up * m_velocity_Y * Time.deltaTime);
-
         if (m_controller.isGrounded && m_velocity_Y < 0)
-        {
             m_velocity_Y = -2f;
-        }
+
+        m_velocity_Y += GRAVITY * Time.deltaTime;
+
+        return Vector3.up * m_velocity_Y * Time.deltaTime;
     }
 
     public void Move(Vector2 input, Transform cam)
     {
-        FreeFall();
-
         m_input = input;
         Vector3 forward = cam.forward;
         Vector3 right = cam.right;
@@ -70,22 +69,29 @@ public class PlayerMotor : IControllable
 
         Vector3 dir = forward * m_input.y + right * m_input.x;
 
-        if (dir.magnitude > 1)
-        {
+        if (dir.sqrMagnitude > 1)
             dir.Normalize();
+
+        bool hasInput = input.sqrMagnitude > 0;
+        if (hasInput == true)
+        {
             Acceleration();
-            Rotate(dir);
         }
         else
         {
             Deceleraiton();
         }
-        m_controller.Move(dir);
+
+        Vector3 horizonal = dir * m_currentSpeed * Time.deltaTime;
+        m_controller.Move(horizonal + FreeFall());
+
+        if(dir.sqrMagnitude > 0.01f)
+            Rotate(dir);
     }
 
-    public void StartRun() { }
+    public void StartRun() { m_targetSpeed = m_status.RunSpeed; }
 
-    public void StopRun() { }
+    public void StopRun() { m_targetSpeed = m_status.WalkSpeed; }
 
-    public void Jump() { }
+    public void Jump() { m_velocity_Y = m_status.JumpForce; }
 }
