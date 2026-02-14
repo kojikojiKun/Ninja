@@ -10,7 +10,7 @@ public enum NoiseState
 
 public class SneakSystem : MonoBehaviour
 {
-    private PlayerContoller m_playerCtrl;
+   /* private PlayerContoller m_playerCtrl;
 
     [Tooltip("コライダーの大きさが小さい順に並べる"),SerializeField] GameObject[] m_noiseRange = new GameObject[3];
     private NoiseState m_currentNoiseState;
@@ -32,28 +32,22 @@ public class SneakSystem : MonoBehaviour
         //騒音の発生範囲を変更する.
         switch (playerState)
         {
-            //止まっているとき.
             case PlayerMoveState.Stop:
                 m_currentNoiseState = NoiseState.None;
                 break;
-
-            //しゃがんで歩いているとき.
             case PlayerMoveState.CrouchWalk:
                 m_currentNoiseState = NoiseState.Small;
                 m_noiseRange[0].SetActive(true);
                 break;
-
-            //歩いているとき.
             case PlayerMoveState.Walk:
                 m_currentNoiseState = NoiseState.Middle;
                 m_noiseRange[1].SetActive(true);
                 break;
-
-            //走っているとき.
             case PlayerMoveState.Run:
                 m_currentNoiseState = NoiseState.Big;
                 m_noiseRange[2].SetActive(true);
                 break;
         }
     }
+   */
 }
