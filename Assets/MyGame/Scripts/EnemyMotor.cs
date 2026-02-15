@@ -7,7 +7,7 @@ public class EnemyMotor: IEnemyMover
     private NavMeshAgent m_agent;
     private Transform[] m_wayPoints;
     private float[] m_waitTimes;
-    private int m_currentPointIndex;
+    private int m_currentPointIndex = 0;
     private int m_direction;
     private float m_waitTime;
     private float m_timer;
@@ -16,6 +16,9 @@ public class EnemyMotor: IEnemyMover
     {
         m_status = status;
         m_agent = agent;
+        m_wayPoints=new Transform[pointData.Length];
+        m_waitTimes=new float[pointData.Length];
+
         for (int i = 0; i < pointData.Length; i++)
         {
             m_wayPoints[i]=pointData[i].Point;
@@ -33,34 +36,39 @@ public class EnemyMotor: IEnemyMover
             m_agent.remainingDistance<=m_agent.stoppingDistance;
     }
 
-     /* 最後のポイントまで移動したら最初のポイントまで順番に移動する.
-      * 最初のポイントまで移動が終わったら最後まで移動を繰り返す.
-     */
+    /* 最後のポイントまで移動したら最初のポイントまで順番に移動する.
+     * 最初のポイントまで移動が終わったら最後まで移動を繰り返す.
+    */
     void SetNextPoint()
     {
+        if (m_wayPoints.Length == 0)
+            return;
+        Debug.Log(m_currentPointIndex);
         m_timer = 0;
 
         int index = m_currentPointIndex;
         if (index == m_wayPoints.Length - 1)
         {
             m_direction = -1;
-        }else if (index == 0)
+        }
+        else if (index == 0)
         {
             m_direction = 1;
         }
-
-        m_currentPointIndex += index;
         GoToDestination(m_wayPoints[m_currentPointIndex]);
+        m_currentPointIndex += m_direction;
+
 
         m_waitTime = m_waitTimes[m_currentPointIndex];
     }
 
     public void Patrol()
     {
-        if(!HasArrival())
+        if (!HasArrival())
             return;
 
-        m_timer=Time.deltaTime;
+        m_timer += Time.deltaTime;
+
         if (m_timer >= m_waitTime)
         {
             SetNextPoint();

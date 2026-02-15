@@ -148,7 +148,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 3f2483164f87a6643a565354f1371b00, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  m_playerPrefab: {fileID: 2203433991282769311, guid: de874a6e0bd295642b23e4f32f161ea5, type: 3}
+  m_playerPrefab: {fileID: 8372940151103743887}
   m_startPos: {fileID: 306163687}
 --- !u!4 &306163687
 Transform:
@@ -352,6 +352,7 @@ MonoBehaviour:
     WaitTime: 5
   - Point: {fileID: 996177829}
     WaitTime: 5
+  m_eyeObj: {fileID: 898092585}
 --- !u!1 &410087039
 GameObject:
   m_ObjectHideFlags: 0
@@ -795,7 +796,6 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 898092586}
-  - component: {fileID: 898092587}
   m_Layer: 0
   m_Name: eye
   m_TagString: Untagged
@@ -818,19 +818,6 @@ Transform:
   m_Children: []
   m_Father: {fileID: 388181881}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &898092587
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 898092585}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 4ca2b0cc3decd1b4f9915bbe29041b19, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  m_checkInterval: 0.2
 --- !u!1 &941603648
 GameObject:
   m_ObjectHideFlags: 0

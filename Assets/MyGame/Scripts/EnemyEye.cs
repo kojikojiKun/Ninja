@@ -1,61 +1,61 @@
 using UnityEngine;
-using System.Collections.Generic;
 
-public class EnemyEye : MonoBehaviour
+public class EnemyEye
 {
-    [SerializeField] private float m_checkInterval;
-    private float m_timer;
+    private EnemyStatus m_status;
     private Transform m_player;
-    private float m_viewDistance;
-    private float m_viewAngle;
-    private bool m_hasSetStatus = false;
+    private Transform m_eye;
+    private float m_checkIntercal;
+    private float m_timer;
 
-    public void ReceiveViewStatus(Transform player,float distance,float angle)
+    public EnemyEye(EnemyStatus status,Transform enemiesEye)
     {
-        m_player = player;
-        m_viewDistance = distance;
-        m_viewAngle = angle;
-
-        m_hasSetStatus = true;
+        m_status = status;
+        m_eye = enemiesEye;
     }
 
-    void CheckSight()
+    public void GetPlayer(Transform player)
     {
-        Debug.Log("check");
-        Vector3 dir = m_player.position - transform.position;
+        m_player = player;
+    }
 
-        if (dir.magnitude > m_viewDistance)
+    bool IsWithinViewAngle()
+    {
+        Vector3 toTarget= (m_player.position-m_eye.position).normalized;
+        float dot = Vector3.Dot(m_eye.forward, toTarget);
+        float threshold = Mathf.Cos(m_status.ViewAngle * 0.5f * Mathf.Deg2Rad);
+        return dot >= threshold;
+    }
+
+    bool IsWithinDistance(Vector3 dir)
+    {
+        //sqrt回避のためm_status.ViewDistance^2で比較.
+        return dir.sqrMagnitude <= m_status.ViewDistance*m_status.ViewDistance;
+    }
+
+    //一定間隔で視野内のオブジェクトがプレイヤーかどうかを判定.
+    public void CheckSight()
+    {
+        m_timer += Time.deltaTime;
+        if (m_timer < m_checkIntercal)
             return;
 
-        //視野の広さを計算.
-        float angle = Vector3.Angle(this.gameObject.transform.forward, dir);
-        if (angle > m_viewAngle / 2)
+        Vector3 dir = m_player.position- m_eye.position;
+
+        if(!IsWithinViewAngle() || !IsWithinDistance(dir))
             return;
 
         if(Physics.Raycast(
-            this.gameObject.transform.position,
+            m_eye.position,
             dir.normalized,
             out RaycastHit hit,
-            m_viewDistance
+            m_status.ViewDistance
             ))
         {
-            if (hit.transform == m_player)
-            {
-                //プレイヤーを発見.
-            }
+            if (hit.collider.CompareTag("Player"))
+                Debug.Log("player found");
         }
-    }
 
-    private void Update()
-    {
-        if (m_hasSetStatus == false)
-            return;
-
-        m_timer += Time.deltaTime;
-        if (m_timer >= m_checkInterval)
-        {
-            CheckSight();
-            m_timer = 0;
-        }
+        m_timer = 0f;
     }
 }

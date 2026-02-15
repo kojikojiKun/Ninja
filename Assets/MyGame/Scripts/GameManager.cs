@@ -3,11 +3,10 @@ using System;
 public class GameManager : MonoBehaviour
 {
     public static GameManager s_Instance;
-    public event Action<PlayerContoller> OnPlayerSpawned;
+    public event Action<Transform> OnPlayerSpawned;
 
-    [SerializeField] GameObject m_playerPrefab;
-    [SerializeField] Transform m_startPos;
-    public PlayerContoller PlayerCtrl { get; private set; }
+    [SerializeField] private GameObject m_playerPrefab;
+    [SerializeField] private Transform m_startPos;
 
     private void Awake()
     {
@@ -24,16 +23,13 @@ public class GameManager : MonoBehaviour
     private void Start()
     {
         // テスト用.
-        //GameStart();
+        GameStart();
     }
 
     //ゲーム開始時に実行.
     public void GameStart()
     {
-        GameObject player = Instantiate(m_playerPrefab, m_startPos.position, Quaternion.identity);
-        PlayerCtrl = player.GetComponent<PlayerContoller>();
-
         //プレイヤーのスポーンを通知.
-        OnPlayerSpawned?.Invoke(PlayerCtrl);
+        OnPlayerSpawned?.Invoke(m_playerPrefab.transform);
     }
 }

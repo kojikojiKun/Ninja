@@ -21,11 +21,12 @@ public class PlayerContoller : MonoBehaviour
 
     private void Awake()
     {
+        m_characterController = GetComponent<CharacterController>();
+        m_soundRangeController = GetComponent<SoundRangeController>();
+        m_input = GetComponent<ReadPlayerInput>();
         m_status = new PlayableEntityStatus(m_data);
         m_core = new PlayerCore(m_status);
-        m_motor = new PlayerMotor(m_status, m_characterController = GetComponent<CharacterController>());
-        m_soundRangeController=GetComponent<SoundRangeController>();
-        m_input = GetComponent<ReadPlayerInput>();
+        m_motor = new PlayerMotor(m_status, m_characterController);
         m_input.OnJumpPressed += HandleJump;
         m_input.OnCrouchPressed += HandleCrouch;
     }
