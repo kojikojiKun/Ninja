@@ -179,7 +179,7 @@ GameObject:
   - component: {fileID: 388181882}
   - component: {fileID: 388181878}
   - component: {fileID: 388181877}
-  - component: {fileID: 388181876}
+  - component: {fileID: 388181883}
   m_Layer: 0
   m_Name: Enemy
   m_TagString: Enemy
@@ -187,28 +187,6 @@ GameObject:
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
---- !u!114 &388181876
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 388181875}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 5e57be1aa2cde934eb46f83d62fb6e95, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  m_data: {fileID: 11400000, guid: a95de64d511737744999bb80646d34f8, type: 2}
-  m_pointData:
-  - Point: {fileID: 388181881}
-    WaitTime: 5
-  - Point: {fileID: 413129626}
-    WaitTime: 2
-  - Point: {fileID: 1584734961}
-    WaitTime: 2
-  - Point: {fileID: 996177829}
-    WaitTime: 5
 --- !u!195 &388181877
 NavMeshAgent:
   m_ObjectHideFlags: 0
@@ -354,6 +332,26 @@ Rigidbody:
   m_Interpolate: 0
   m_Constraints: 0
   m_CollisionDetection: 0
+--- !u!114 &388181883
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 388181875}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 160747ba37730d341bd4bb918c6b464d, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::NewEnemyController
+  m_data: {fileID: 11400000, guid: a95de64d511737744999bb80646d34f8, type: 2}
+  m_pointData:
+  - Point: {fileID: 413129626}
+    WaitTime: 5
+  - Point: {fileID: 1584734961}
+    WaitTime: 5
+  - Point: {fileID: 996177829}
+    WaitTime: 5
 --- !u!1 &410087039
 GameObject:
   m_ObjectHideFlags: 0
@@ -571,6 +569,61 @@ MeshFilter:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 413129625}
   m_Mesh: {fileID: 10207, guid: 0000000000000000e000000000000000, type: 0}
+--- !u!1 &506257088
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 506257089}
+  - component: {fileID: 506257090}
+  m_Layer: 0
+  m_Name: None
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &506257089
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 506257088}
+  serializedVersion: 2
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 6930038086767714618}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!136 &506257090
+CapsuleCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 506257088}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 0
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 2
+  m_Radius: 0.1
+  m_Height: 1
+  m_Direction: 1
+  m_Center: {x: 0, y: 0, z: 0}
 --- !u!1 &755968700
 GameObject:
   m_ObjectHideFlags: 0
@@ -1787,7 +1840,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!1 &4874400006398335285
 GameObject:
   m_ObjectHideFlags: 0
@@ -1804,7 +1857,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!4 &4947622975618805828
 Transform:
   m_ObjectHideFlags: 0
@@ -1854,7 +1907,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!135 &6150278352128481825
 SphereCollider:
   m_ObjectHideFlags: 0
@@ -1904,6 +1957,7 @@ Transform:
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
+  - {fileID: 506257089}
   - {fileID: 3070526953257627094}
   - {fileID: 159817489629211373}
   - {fileID: 6484511914800663718}
@@ -2003,6 +2057,7 @@ GameObject:
   - component: {fileID: 8487630087102206721}
   - component: {fileID: 2856231907539609879}
   - component: {fileID: 8487630087102206722}
+  - component: {fileID: 8487630087102206724}
   - component: {fileID: 8487630087102206723}
   - component: {fileID: 8177839871765183505}
   m_Layer: 0
@@ -2061,6 +2116,27 @@ CapsuleCollider:
   m_Height: 2
   m_Direction: 1
   m_Center: {x: 0, y: 0, z: 0}
+--- !u!114 &8487630087102206724
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8372940151103743887}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 077d0f7bae7d50f4999cecf6e186ea59, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::SoundRangeController
+  m_profiles:
+  - NoiseCollider: {fileID: 506257090}
+    OcuurCondirion: 0
+  - NoiseCollider: {fileID: 6150278352128481825}
+    OcuurCondirion: 3
+  - NoiseCollider: {fileID: 9167096501727246881}
+    OcuurCondirion: 1
+  - NoiseCollider: {fileID: 2507918449249187609}
+    OcuurCondirion: 2
 --- !u!135 &9167096501727246881
 SphereCollider:
   m_ObjectHideFlags: 0

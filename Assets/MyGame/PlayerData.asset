@@ -13,10 +13,10 @@ MonoBehaviour:
   m_Name: PlayerData
   m_EditorClassIdentifier: Assembly-CSharp::PlayableEntityData
   MaxHp: 50
-  WalkSpeed: 3
+  WalkSpeed: 5
   RunSpeed: 10
-  CrouchWalkSpeed: 1
+  CrouchWalkSpeed: 2
   JumpForce: 10
-  Acceleration: 5
-  Deceleration: 3
+  Acceleration: 10
+  Deceleration: 10
   TurnSpeed: 4.5

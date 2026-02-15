@@ -1,14 +1,6 @@
 using UnityEngine;
 using UnityEngine.AI;
 
-//巡回ポイントとポイントごとの待機時間.
-[System.Serializable]
-public  class PatrolPointData
-{
-    public Transform Point;
-    public float WaitTime;
-} 
-
 [RequireComponent(typeof(NavMeshAgent))]
 public class EnemyController : MonoBehaviour
 {

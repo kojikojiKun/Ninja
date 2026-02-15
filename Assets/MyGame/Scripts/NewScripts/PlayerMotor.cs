@@ -2,9 +2,8 @@ using UnityEngine;
 public class PlayerMotor : IControllable
 {
     private Vector2 m_input;
-    private float m_currentSpeed;
+    public float CurrentSpeed { get; private set; }
     private float m_targetSpeed;
-    private float m_jumpForce;
     private const float GRAVITY = -9.81f;
     private float m_velocity_Y = 0f;
     private PlayableEntityStatus m_status;
@@ -18,8 +17,8 @@ public class PlayerMotor : IControllable
 
     void Acceleration()
     {
-        m_currentSpeed = Mathf.MoveTowards(
-            m_currentSpeed,
+        CurrentSpeed = Mathf.MoveTowards(
+            CurrentSpeed,
             m_targetSpeed,
             m_status.Acceleration * Time.deltaTime
             );
@@ -27,8 +26,8 @@ public class PlayerMotor : IControllable
 
     void Deceleraiton()
     {
-        m_currentSpeed = Mathf.MoveTowards(
-            m_currentSpeed,
+        CurrentSpeed = Mathf.MoveTowards(
+            CurrentSpeed,
             0f,
             m_status.Deceleration * Time.deltaTime
             );
@@ -43,6 +42,7 @@ public class PlayerMotor : IControllable
             0f
             );
 
+        if( desierdForward.sqrMagnitude > 0.01f )
             m_controller.transform.rotation=Quaternion.LookRotation( desierdForward );
     }
 
@@ -82,16 +82,14 @@ public class PlayerMotor : IControllable
             Deceleraiton();
         }
 
-        Vector3 horizonal = dir * m_currentSpeed * Time.deltaTime;
+        Vector3 horizonal = dir * CurrentSpeed * Time.deltaTime;
         m_controller.Move(horizonal + FreeFall());
 
         if(dir.sqrMagnitude > 0.01f)
             Rotate(dir);
     }
 
-    public void StartRun() { m_targetSpeed = m_status.RunSpeed; }
+    public void SetTargetSpeed(float speed) { m_targetSpeed = speed; }
 
-    public void StopRun() { m_targetSpeed = m_status.WalkSpeed; }
-
-    public void Jump() { m_velocity_Y = m_status.JumpForce; }
+    public void Jump() { m_velocity_Y=m_status.JumpForce; }
 }
