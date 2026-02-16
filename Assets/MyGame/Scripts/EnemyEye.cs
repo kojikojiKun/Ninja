@@ -7,6 +7,7 @@ public class EnemyEye
     private Transform m_eye;
     private float m_checkIntercal;
     private float m_timer;
+    public bool IsSeePlayer { get; private set; }
 
     public EnemyEye(EnemyStatus status,Transform enemiesEye)
     {
@@ -53,7 +54,9 @@ public class EnemyEye
             ))
         {
             if (hit.collider.CompareTag("Player"))
-                Debug.Log("player found");
+                IsSeePlayer=true;
+            else
+                IsSeePlayer=false;
         }
 
         m_timer = 0f;

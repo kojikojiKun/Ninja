@@ -4,7 +4,7 @@ using UnityEngine.InputSystem;
 [RequireComponent(typeof(CharacterController))]
 [RequireComponent (typeof(SoundRangeController))]
 [RequireComponent(typeof(ReadPlayerInput))]
-public class PlayerContoller : MonoBehaviour
+public class PlayerContoller : MonoBehaviour,IAmbientLightReader
 {
     [SerializeField] private PlayableEntityData m_data;
     [SerializeField] private Transform m_camera;

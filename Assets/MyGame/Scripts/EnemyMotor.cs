@@ -43,7 +43,6 @@ public class EnemyMotor: IEnemyMover
     {
         if (m_wayPoints.Length == 0)
             return;
-        Debug.Log(m_currentPointIndex);
         m_timer = 0;
 
         int index = m_currentPointIndex;

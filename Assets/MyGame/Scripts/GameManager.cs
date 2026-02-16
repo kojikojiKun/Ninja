@@ -4,6 +4,8 @@ public class GameManager : MonoBehaviour
 {
     public static GameManager s_Instance;
     public event Action<Transform> OnPlayerSpawned;
+    public event Action<LightVisibilityEvaluator> OnCachedLights;
+    private LightVisibilityEvaluator m_lightVisibilityEvaluator;
 
     [SerializeField] private GameObject m_playerPrefab;
     [SerializeField] private Transform m_startPos;
@@ -20,10 +22,17 @@ public class GameManager : MonoBehaviour
         //シーンをまたいでも破壊しない.
         DontDestroyOnLoad(gameObject);
     }
+
     private void Start()
     {
-        // テスト用.
         GameStart();
+    }
+
+    public void CacheLights()
+    {
+        LightToCheck[] lightToChecks = FindObjectsByType<LightToCheck>(FindObjectsSortMode.None);
+        m_lightVisibilityEvaluator = new LightVisibilityEvaluator(lightToChecks);
+        OnCachedLights?.Invoke(m_lightVisibilityEvaluator);
     }
 
     //ゲーム開始時に実行.
@@ -31,5 +40,6 @@ public class GameManager : MonoBehaviour
     {
         //プレイヤーのスポーンを通知.
         OnPlayerSpawned?.Invoke(m_playerPrefab.transform);
+        CacheLights();
     }
 }
