@@ -27,8 +27,19 @@ public class PlayerContoller : MonoBehaviour,IAmbientLightReader
         m_status = new PlayableEntityStatus(m_data);
         m_core = new PlayerCore(m_status);
         m_motor = new PlayerMotor(m_status, m_characterController);
+        
+    }
+
+    private void OnEnable()
+    {
         m_input.OnJumpPressed += HandleJump;
         m_input.OnCrouchPressed += HandleCrouch;
+    }
+
+    private void OnDisable()
+    {
+        m_input.OnJumpPressed -= HandleJump;
+        m_input.OnCrouchPressed -= HandleCrouch;
     }
 
     void HandleJump()

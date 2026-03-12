@@ -1,14 +1,17 @@
 using UnityEngine;
 using System;
+using System.Collections.Generic;
 public class GameManager : MonoBehaviour
 {
+    [SerializeField] private Transform m_startPos;
+    [SerializeField] private GameObject m_player;
+
+    public EnemyController HighestScoreEnemy { get; private set; }
+    public GameObject Player => m_player;
+    public LightVisibilityEvaluator LightVisibilityEvaluator { get; private set; }
     public static GameManager s_Instance;
     public event Action<Transform> OnPlayerSpawned;
     public event Action<LightVisibilityEvaluator> OnCachedLights;
-    private LightVisibilityEvaluator m_lightVisibilityEvaluator;
-
-    [SerializeField] private GameObject m_playerPrefab;
-    [SerializeField] private Transform m_startPos;
 
     private void Awake()
     {
@@ -25,21 +28,27 @@ public class GameManager : MonoBehaviour
 
     private void Start()
     {
-        GameStart();
+        NotifyPlayerSpawn();
+        NotifyCacheLights();
     }
 
-    public void CacheLights()
+    public void NotifyCacheLights()
     {
         LightToCheck[] lightToChecks = FindObjectsByType<LightToCheck>(FindObjectsSortMode.None);
-        m_lightVisibilityEvaluator = new LightVisibilityEvaluator(lightToChecks);
-        OnCachedLights?.Invoke(m_lightVisibilityEvaluator);
+        LightVisibilityEvaluator = new LightVisibilityEvaluator(lightToChecks);
+        OnCachedLights?.Invoke(LightVisibilityEvaluator);
     }
 
-    //ゲーム開始時に実行.
-    public void GameStart()
+    public void NotifyPlayerSpawn()
     {
-        //プレイヤーのスポーンを通知.
-        OnPlayerSpawned?.Invoke(m_playerPrefab.transform);
-        CacheLights();
+        OnPlayerSpawned?.Invoke(Player.transform);
+    }
+
+    public void NotifyEnemyScoreChanged(EnemyController enemy)
+    {
+        if (HighestScoreEnemy == null || enemy.TotalScore > HighestScoreEnemy.TotalScore)
+        {
+            HighestScoreEnemy = enemy;
+        }
     }
 }

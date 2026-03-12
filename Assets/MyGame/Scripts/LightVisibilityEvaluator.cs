@@ -5,6 +5,7 @@ public class LightVisibilityEvaluator
     [SerializeField] private LayerMask m_shadowBlock;
     private LightToCheck[] m_lightsToCheck;
     private Light[] m_lights;
+    private const float MIN_LIGHT_SCORE = 1;
 
     public LightVisibilityEvaluator(LightToCheck[] lightToChecks)
     {
@@ -16,10 +17,23 @@ public class LightVisibilityEvaluator
         }
     }
 
-    //ターゲットのオブジェクトの周囲の明るさを発見しやすさのスコアとして返す.
+    public float EaseOfViewingScore(Vector3 evalTarget,Vector3 targetPos,float brightness)
+    {
+        if (brightness == 0)
+            brightness = 0.2f;
+
+        //0除算回避のためMathf.Max(distance,0.1f)を使用.
+        float distance = Mathf.Max(Vector3.Distance(evalTarget, targetPos), 0.1f);
+        float lightScore = GetLightScore(targetPos);
+        float totalScore = (brightness * lightScore) / distance;
+
+        return totalScore;
+    }
+
+    //Lightのrangeの中心に近いほど高いスコアを返す.
     public float GetLightScore(Vector3 targetPos)
     {
-        float total = 0;
+        float total = MIN_LIGHT_SCORE;
         foreach(var light in m_lights)
         {
             if(!light.enabled)
