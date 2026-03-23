@@ -22,6 +22,8 @@ public class EnemyEye
     bool IsWithinViewAngle(Vector3 dir)
     {
         Vector3 toTarget = dir.normalized;
+
+        //ターゲットが視野内ならtrue
         float dot = Vector3.Dot(m_eye.forward, toTarget);
         float threshold = Mathf.Cos(m_status.ViewAngle * 0.5f * Mathf.Deg2Rad);
         return dot >= threshold;
@@ -44,6 +46,7 @@ public class EnemyEye
         if (!IsWithinViewAngle(dir) || !IsWithinDistance(dir))
             return false;
 
+        //Rayを飛ばして(sightMask)のオブジェクトのみを判定.
         if (Physics.Raycast(
             m_eye.position,
             dir.normalized,

@@ -1,5 +1,4 @@
 using UnityEngine;
-using UnityEngine.InputSystem;
 
 [RequireComponent(typeof(CharacterController))]
 [RequireComponent (typeof(SoundRangeController))]
@@ -92,6 +91,7 @@ public class PlayerContoller : MonoBehaviour,IAmbientLightReader
 
         bool run = m_input.IsRunPressed;
         
+        //ˆÚ“®ó‘Ô‚É‰‚¶‚ÄˆÚ“®‘¬“x‚ğ•ÏX.
         if (run)
         {
             m_isCrouching = false;

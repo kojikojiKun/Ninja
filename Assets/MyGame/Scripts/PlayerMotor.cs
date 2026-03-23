@@ -58,6 +58,7 @@ public class PlayerMotor : IControllable
 
     public void Move(Vector2 input, Transform cam)
     {
+        //カメラを基準にプレイヤーを移動.
         m_input = input;
         Vector3 forward = cam.forward;
         Vector3 right = cam.right;

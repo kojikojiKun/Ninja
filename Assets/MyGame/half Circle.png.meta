@@ -1,5 +1,5 @@
 fileFormatVersion: 2
-guid: 0274b4e5af59c594c894d6ece758bb54
+guid: 5646b8173c12c49499c748c49ca4c716
 TextureImporter:
   internalIDToNameTable: []
   externalObjects: {}
@@ -49,7 +49,7 @@ TextureImporter:
   alignment: 0
   spritePivot: {x: 0.5, y: 0.5}
   spritePixelsToUnits: 100
-  spriteBorder: {x: 0, y: 0, z: 0, w: 0}
+  spriteBorder: {x: 0, y: 0, z: 512, w: 0}
   spriteGenerateFallbackPhysicsShape: 1
   alphaUsage: 1
   alphaIsTransparency: 1
@@ -97,7 +97,7 @@ TextureImporter:
     serializedVersion: 2
     sprites:
     - serializedVersion: 2
-      name: gauge_0
+      name: half Circle_0
       rect:
         serializedVersion: 2
         x: 0
@@ -112,14 +112,14 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: 0
       bones: []
-      spriteID: a506a52ffef3aed4c962298909af71e4
-      internalID: 84625553
+      spriteID: 3d9127aebcc18e14eadaf42b29debaee
+      internalID: 778517352
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: gauge_1
+      name: half Circle_1
       rect:
         serializedVersion: 2
         x: 512
@@ -134,8 +134,8 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: 0
       bones: []
-      spriteID: af402b6c6696ae24b8f76c98036c302a
-      internalID: -1807748685
+      spriteID: 737b38b659a298340880ff2527f5a403
+      internalID: 80052860
       vertices: []
       indices: 
       edges: []
@@ -145,7 +145,7 @@ TextureImporter:
     physicsShape: []
     bones: []
     spriteID: 5e97eb03825dee720800000000000000
-    internalID: 0
+    internalID: 1537655665
     vertices: []
     indices: 
     edges: []
@@ -158,8 +158,8 @@ TextureImporter:
       - key: SpriteEditor.SliceOnImport
         value: True
     nameFileIdTable:
-      gauge_0: 84625553
-      gauge_1: -1807748685
+      half Circle_0: 778517352
+      half Circle_1: 80052860
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 

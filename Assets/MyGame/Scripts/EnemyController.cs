@@ -100,6 +100,7 @@ public class EnemyController : MonoBehaviour, IAmbientLightReader
         }
     }
 
+    //現在地の明るさを取得.
     void GetCurrentBrightness(float brightness)
     {
         m_brightness = brightness;
@@ -123,6 +124,7 @@ public class EnemyController : MonoBehaviour, IAmbientLightReader
         GetCurrentBrightness(max);
     }
 
+    //必要なコンポーネントがnullならセット.
     void NullCompletion()
     {
         if (m_lightEvaluator == null)
