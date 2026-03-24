@@ -1,6 +1,17 @@
 using UnityEngine;
+using Unity.Cinemachine;
 public class SearchGauge
 {
+    private RectTransform m_rotationTarget;
+    private Transform m_enemy;
+    private Camera m_cam;
+    private Transform m_player;
+
+    public SearchGauge (RectTransform target)
+    {
+        m_rotationTarget = target;
+    }
+
     public float CalcLeftFillValue(float score)
     {
         return Mathf.Lerp(0f, 10f, Mathf.InverseLerp(0, 50f, score));
@@ -11,11 +22,35 @@ public class SearchGauge
         return Mathf.Lerp(10f, 0f, Mathf.InverseLerp(0, 50f, score));
     }
 
-    public float CalcAngleBetweenEnemyAndPlayer(Transform enemy,Transform cam)
+    public void GetPlayer(Transform player)
     {
-        Vector3 dir = enemy.position - cam.position;
-        dir.y = 0;
+        if (m_player == null)
+            m_player = player;
+    }
 
-        return Vector3.SignedAngle(cam.transform.forward, dir, Vector3.up);
+    private float CalcAngleBetweenEnemyAndCam()
+    {
+        Vector2 rectEnemy = RectTransformUtility.WorldToScreenPoint(m_cam, m_enemy.transform.position);
+        Vector2 screenCenter = new Vector2(Screen.width / 2f, Screen.height / 2f);
+        Vector2 dir = rectEnemy - screenCenter;
+        float angle = Mathf.Atan2(dir.x, dir.y) * Mathf.Rad2Deg;
+
+        //ìGÇ™ÉJÉÅÉâÇÃå„ÇÎÇÃèÍçáÇÃï‚ê≥.
+        Vector3 viewPoint = m_cam.WorldToViewportPoint(m_enemy.position);
+        if (viewPoint.z < 0)
+        {
+            angle += 180f;
+        }
+
+        return angle;
+    }
+
+    public void TurnToEnemy(Transform enemy, Camera cam)
+    {
+        m_enemy = enemy;
+        m_cam = cam;
+
+        //ìGÇ∆ÉJÉÅÉâä‘ÇÃäpìxÇåvéZÇµÅAî≠å©ÉQÅ[ÉWÇâÒì]Ç≥ÇπÇÈ.
+        m_rotationTarget.localRotation = Quaternion.Euler(0, 0, -CalcAngleBetweenEnemyAndCam());
     }
 }

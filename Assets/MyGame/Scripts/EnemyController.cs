@@ -133,6 +133,26 @@ public class EnemyController : MonoBehaviour, IAmbientLightReader
             m_player = GameManager.s_Instance.Player.transform;
     }
 
+    void CheckViewingScore()
+    {
+
+        if (m_enemyEye.IsSeePlayer())
+        {
+            //プレイヤーが見えていたら発見スコア上昇.
+            TotalScore = m_disScore.IncreaceScore(TotalScore, m_lightEvaluator.EaseOfViewingScore(
+                this.transform.position,
+                m_player.position,
+                m_brightness
+                ));
+        }
+        else
+        {
+            //プレイヤー未発見なら発見スコア減少.
+            TotalScore = m_disScore.DecreaceScore(TotalScore);
+        }
+        GameManager.s_Instance.NotifyEnemyScoreChanged(this);
+    }
+
     private void Update()
     {
         NullCompletion();
@@ -143,19 +163,7 @@ public class EnemyController : MonoBehaviour, IAmbientLightReader
         m_timer += Time.deltaTime;
         if (m_timer >= m_checkInterval)
         {
-            if (m_enemyEye.IsSeePlayer())
-            {
-                TotalScore = m_disScore.IncreaceScore(TotalScore, m_lightEvaluator.EaseOfViewingScore(
-                    this.transform.position,
-                    m_player.position,
-                    m_brightness
-                    ));
-            }
-            else
-            {
-                TotalScore = m_disScore.DecreaceScore(TotalScore);
-            }
-            GameManager.s_Instance.NotifyEnemyScoreChanged(this);
+            CheckViewingScore();
             m_timer = 0;
         }
 

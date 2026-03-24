@@ -9,21 +9,21 @@ public class LightVisibilityEvaluator
 
     public LightVisibilityEvaluator(LightToCheck[] lightToChecks)
     {
-        m_lightsToCheck=lightToChecks;
+        m_lightsToCheck = lightToChecks;
         m_lights = new Light[lightToChecks.Length];
-        for(int i = 0; i < lightToChecks.Length; i++)
+        for (int i = 0; i < lightToChecks.Length; i++)
         {
             m_lights[i] = m_lightsToCheck[i].GetComponent<Light>();
         }
     }
 
-    public float EaseOfViewingScore(Vector3 evalTarget,Vector3 targetPos,float brightness)
+    public float EaseOfViewingScore(Vector3 evalTarget, Vector3 targetPos, float brightness)
     {
         if (brightness == 0)
             brightness = 0.2f;
 
         //0除算回避のためMathf.Max(distance,0.1f)を使用.
-        float distance = Mathf.Max(Vector3.Distance(evalTarget, targetPos), 0.1f);
+        float distance = Mathf.Max(Vector3.Distance(evalTarget, targetPos), 0.1f) * 0.5f;
         float lightScore = GetLightScore(targetPos);
         float totalScore = (brightness * lightScore) / distance;
 
@@ -34,19 +34,19 @@ public class LightVisibilityEvaluator
     public float GetLightScore(Vector3 targetPos)
     {
         float total = MIN_LIGHT_SCORE;
-        foreach(var light in m_lights)
+        foreach (var light in m_lights)
         {
-            if(!light.enabled)
+            if (!light.enabled)
                 continue;
 
-            Vector3 dir = targetPos- light.transform.position;
+            Vector3 dir = targetPos - light.transform.position;
             float distSqr = dir.sqrMagnitude;
             float rangeSqr = light.range * light.range;
 
-            if(distSqr > rangeSqr) 
+            if (distSqr > rangeSqr)
                 continue;
 
-            float dist=Mathf.Sqrt(distSqr);
+            float dist = Mathf.Sqrt(distSqr);
 
             if (IsWithinShadow(light, targetPos))
                 continue;
@@ -58,12 +58,11 @@ public class LightVisibilityEvaluator
     }
 
     //ライトからRayを射出し、Rayにターゲット以外のオブジェクトが触れれば影の中と判定する.
-    bool IsWithinShadow(Light light,Vector3 targetPos)
+    bool IsWithinShadow(Light light, Vector3 targetPos)
     {
         Vector3 dir = targetPos - light.transform.position;
-        float dist=dir.magnitude;
 
-        if(Physics.Raycast(
+        if (Physics.Raycast(
             light.transform.position,
             dir.normalized,
             out RaycastHit hit,

@@ -8,10 +8,14 @@ public class UIController : MonoBehaviour
     [SerializeField] private Slider m_sliderLeft;
     [SerializeField] private Slider m_sliderRight;
     private SearchGauge m_gauge;
+    private Transform m_camera;
 
     private void Awake()
     {
-        m_gauge = new SearchGauge();
+        m_gauge = new SearchGauge(m_sliderPivot);
+
+        if (GameManager.s_Instance.MainCamera != null)
+            m_camera = GameManager.s_Instance.MainCamera.transform;
     }
 
     void ControlFillValue()
@@ -21,23 +25,22 @@ public class UIController : MonoBehaviour
         m_sliderRight.value = m_gauge.CalcRightFillValue(GameManager.s_Instance.HighestScoreEnemy.TotalScore);
     }
 
-    void TurnForEnemy()
-    {
-        float angle = m_gauge.CalcAngleBetweenEnemyAndPlayer(
-            GameManager.s_Instance.HighestScoreEnemy.gameObject.transform,
-            Camera.main.transform
-            );
-
-        m_sliderPivot.localRotation = Quaternion.Euler(0f, 0f, angle);
-    }
-
     private void Update()
     {
-        if (GameManager.s_Instance.HighestScoreEnemy == null)
+        if (m_camera == null)
+            m_camera = GameManager.s_Instance.MainCamera.transform;
+
+        if (GameManager.s_Instance.Player != null)
+            m_gauge.GetPlayer(GameManager.s_Instance.Player.transform);
+
+        if (GameManager.s_Instance.HighestScoreEnemy == null || GameManager.s_Instance.Player == null)
             return;
 
         ControlFillValue();
-        TurnForEnemy();
+        m_gauge.TurnToEnemy(
+            GameManager.s_Instance.HighestScoreEnemy.transform,
+            GameManager.s_Instance.MainCamera
+            );
 
         if (GameManager.s_Instance.HighestScoreEnemy.TotalScore <= 0)
             m_sliders.SetActive(false);

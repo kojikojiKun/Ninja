@@ -1,4 +1,5 @@
 using UnityEngine;
+using Unity.Cinemachine;
 
 [RequireComponent(typeof(CharacterController))]
 [RequireComponent (typeof(SoundRangeController))]
@@ -6,7 +7,7 @@ using UnityEngine;
 public class PlayerContoller : MonoBehaviour,IAmbientLightReader
 {
     [SerializeField] private PlayableEntityData m_data;
-    [SerializeField] private Transform m_camera;
+    private Transform m_camera;
     private CharacterController m_characterController;
     private PlayableEntityStatus m_status;
     private PlayerCore m_core;
@@ -26,7 +27,9 @@ public class PlayerContoller : MonoBehaviour,IAmbientLightReader
         m_status = new PlayableEntityStatus(m_data);
         m_core = new PlayerCore(m_status);
         m_motor = new PlayerMotor(m_status, m_characterController);
-        
+
+        if (GameManager.s_Instance.MainCamera != null)
+            m_camera = GameManager.s_Instance.MainCamera.transform;
     }
 
     private void OnEnable()
@@ -86,6 +89,9 @@ public class PlayerContoller : MonoBehaviour,IAmbientLightReader
 
     private void Update()
     {
+        if (m_camera == null)
+            m_camera = GameManager.s_Instance.MainCamera.transform;
+
         if (m_core.IsDead() == true)
             return;
 
@@ -104,6 +110,8 @@ public class PlayerContoller : MonoBehaviour,IAmbientLightReader
 
         SetCurrentMoveState();
         GiveSpeedToMotor();
-        m_motor.Move(m_input.MoveInput, m_camera.transform);
+
+        if (m_camera != null)
+            m_motor.Move(m_input.MoveInput, m_camera.transform);
     }
 }

@@ -1,11 +1,14 @@
 using UnityEngine;
+using Unity.Cinemachine;
 using System;
 
 public class GameManager : MonoBehaviour
 {
     [SerializeField] private Transform m_startPos;
     [SerializeField] private GameObject m_player;
+    [SerializeField] private Camera m_mainCam;
 
+    public Camera MainCamera => m_mainCam;
     public EnemyController HighestScoreEnemy { get; private set; }
     public GameObject Player => m_player;
     public LightVisibilityEvaluator LightVisibilityEvaluator { get; private set; }
@@ -32,6 +35,7 @@ public class GameManager : MonoBehaviour
         NotifyCacheLights();
     }
 
+    //シーン上のLightToCheckオブジェクトをキャッシュ.
     public void NotifyCacheLights()
     {
         LightToCheck[] lightToChecks = FindObjectsByType<LightToCheck>(FindObjectsSortMode.None);
@@ -41,11 +45,13 @@ public class GameManager : MonoBehaviour
 
     public void NotifyPlayerSpawn()
     {
+        //プレイヤーのスポーンを通知.
         OnPlayerSpawned?.Invoke(Player.transform);
     }
 
     public void NotifyEnemyScoreChanged(EnemyController enemy)
     {
+        //プレイヤー発見スコアが最も高い敵が更新されたときのみ実行.
         if (HighestScoreEnemy == null || enemy.TotalScore > HighestScoreEnemy.TotalScore)
         {
             HighestScoreEnemy = enemy;
