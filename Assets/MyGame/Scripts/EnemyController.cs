@@ -84,6 +84,11 @@ public class EnemyController : MonoBehaviour, IAmbientLightReader
 
     private void OnTriggerEnter(Collider other)
     {
+        if (other.CompareTag("Noise"))
+        {
+            m_motor.GoToDestination(other.gameObject.transform);
+        }
+
         if (other.TryGetComponent(out LightZone zone))
         {
             m_lightZones.Add(zone);
@@ -98,6 +103,11 @@ public class EnemyController : MonoBehaviour, IAmbientLightReader
             m_lightZones.Remove(zone);
             CalkBrightness();
         }
+    }
+
+    public void DiscoverPlayer(Transform player)
+    {
+        m_motor.GoToDestination(player);
     }
 
     //åªç›ínÇÃñæÇÈÇ≥ÇéÊìæ.
@@ -142,7 +152,8 @@ public class EnemyController : MonoBehaviour, IAmbientLightReader
             TotalScore = m_disScore.IncreaceScore(TotalScore, m_lightEvaluator.EaseOfViewingScore(
                 this.transform.position,
                 m_player.position,
-                m_brightness
+                m_brightness,
+                m_status.ViewDistance
                 ));
         }
         else

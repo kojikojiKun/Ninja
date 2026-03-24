@@ -2,12 +2,14 @@ using UnityEngine;
 
 public class LightVisibilityEvaluator
 {
-    [SerializeField] private LayerMask m_shadowBlock;
+    private LayerMask m_shadowBlock;
     private LightToCheck[] m_lightsToCheck;
     private Light[] m_lights;
     private const float MIN_LIGHT_SCORE = 1;
+    private float m_lightPow;
+    private float m_distancePow;
 
-    public LightVisibilityEvaluator(LightToCheck[] lightToChecks)
+    public LightVisibilityEvaluator(LightToCheck[] lightToChecks, float lightPow, float distancePow)
     {
         m_lightsToCheck = lightToChecks;
         m_lights = new Light[lightToChecks.Length];
@@ -15,17 +17,25 @@ public class LightVisibilityEvaluator
         {
             m_lights[i] = m_lightsToCheck[i].GetComponent<Light>();
         }
+
+        m_lightPow = lightPow;
+        m_distancePow = distancePow;
     }
 
-    public float EaseOfViewingScore(Vector3 evalTarget, Vector3 targetPos, float brightness)
+    public float EaseOfViewingScore(Vector3 evalTarget, Vector3 targetPos, float brightness, float ViewDistance)
     {
         if (brightness == 0)
             brightness = 0.2f;
 
         //0èúéZâÒîÇÃÇΩÇﬂMathf.Max(distance,0.1f)Çégóp.
-        float distance = Mathf.Max(Vector3.Distance(evalTarget, targetPos), 0.1f) * 0.5f;
+        float distance = Mathf.Max(Vector3.Distance(evalTarget, targetPos), 0.1f);
+
         float lightScore = GetLightScore(targetPos);
-        float totalScore = (brightness * lightScore) / distance;
+
+        //targetÇ∆ÇÃãóó£Ç1Ç©ÇÁ10ÇÃäÑçáÇ≈ï‘Ç∑.
+        float distanceScore = Mathf.Lerp(0.1f, 1f, (distance / ViewDistance));
+
+        float totalScore = Mathf.Pow((brightness * lightScore), m_lightPow) / Mathf.Pow(distanceScore, m_distancePow);
 
         return totalScore;
     }

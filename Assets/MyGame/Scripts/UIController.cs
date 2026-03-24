@@ -25,7 +25,7 @@ public class UIController : MonoBehaviour
         m_sliderRight.value = m_gauge.CalcRightFillValue(GameManager.s_Instance.HighestScoreEnemy.TotalScore);
     }
 
-    private void Update()
+    private bool IsReferenceNull()
     {
         if (m_camera == null)
             m_camera = GameManager.s_Instance.MainCamera.transform;
@@ -33,7 +33,12 @@ public class UIController : MonoBehaviour
         if (GameManager.s_Instance.Player != null)
             m_gauge.GetPlayer(GameManager.s_Instance.Player.transform);
 
-        if (GameManager.s_Instance.HighestScoreEnemy == null || GameManager.s_Instance.Player == null)
+        return GameManager.s_Instance.HighestScoreEnemy == null || GameManager.s_Instance.Player == null;
+    }
+
+    private void Update()
+    {
+        if (IsReferenceNull())
             return;
 
         ControlFillValue();

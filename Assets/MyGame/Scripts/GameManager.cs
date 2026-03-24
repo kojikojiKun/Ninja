@@ -7,6 +7,8 @@ public class GameManager : MonoBehaviour
     [SerializeField] private Transform m_startPos;
     [SerializeField] private GameObject m_player;
     [SerializeField] private Camera m_mainCam;
+    [SerializeField] private float m_lightScorePow;
+    [SerializeField] private float m_distanceScorePow;
 
     public Camera MainCamera => m_mainCam;
     public EnemyController HighestScoreEnemy { get; private set; }
@@ -39,7 +41,7 @@ public class GameManager : MonoBehaviour
     public void NotifyCacheLights()
     {
         LightToCheck[] lightToChecks = FindObjectsByType<LightToCheck>(FindObjectsSortMode.None);
-        LightVisibilityEvaluator = new LightVisibilityEvaluator(lightToChecks);
+        LightVisibilityEvaluator = new LightVisibilityEvaluator(lightToChecks, m_lightScorePow, m_distanceScorePow);
         OnCachedLights?.Invoke(LightVisibilityEvaluator);
     }
 
