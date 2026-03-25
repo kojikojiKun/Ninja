@@ -27,12 +27,12 @@ public class EnemyController : MonoBehaviour, IAmbientLightReader
     private AlertState m_alertState;
 
     [SerializeField] private float m_defDarkValue;
-    [SerializeField] private float m_maxDisScore;
     private LightVisibilityEvaluator m_lightEvaluator;
     private HashSet<LightZone> m_lightZones = new HashSet<LightZone>();
     private float m_brightness;
     private float m_checkInterval;
     private float m_timer;
+    private const float MAX_VIEW_SCORE = 40f;
     public float TotalScore { get;private set; }
 
 
@@ -43,8 +43,9 @@ public class EnemyController : MonoBehaviour, IAmbientLightReader
         m_core = new EnemyCore(m_status);
         m_motor = new EnemyMotor(m_status, m_agent, m_pointData);
         m_enemyEye = new EnemyEye(m_status, m_eyeObj.transform, m_sightMask);
-        m_disScore = new DiscoveryScore();
+        m_disScore = new DiscoveryScore(MAX_VIEW_SCORE);
     }
+
     private void OnEnable()
     {
         if (GameManager.s_Instance == null)
@@ -62,6 +63,7 @@ public class EnemyController : MonoBehaviour, IAmbientLightReader
         GameManager.s_Instance.OnPlayerSpawned -= OnPlayerSpawned;
         GameManager.s_Instance.OnCachedLights -= OnCachedLights;
     }
+
     private void Start()
     {
         if (GameManager.s_Instance?.Player != null && m_player == null)
@@ -71,6 +73,9 @@ public class EnemyController : MonoBehaviour, IAmbientLightReader
             OnCachedLights(GameManager.s_Instance.LightVisibilityEvaluator);
     }
 
+    /// =======================================================================
+    /// Read Event
+    /// =======================================================================
     void OnPlayerSpawned(Transform player)
     {
         m_enemyEye?.GetPlayer(player);
@@ -81,12 +86,29 @@ public class EnemyController : MonoBehaviour, IAmbientLightReader
     {
         m_lightEvaluator = lightEvaluator;
     }
+    /// =======================================================================
+    /// finish
 
+
+    /// =======================================================================
+    /// ColliderTriggerEnter
+    /// =======================================================================
     private void OnTriggerEnter(Collider other)
     {
-        if (other.CompareTag("Noise"))
+        //プレイヤーの騒音オブジェクトに接触.
+        if (m_alertState != AlertState.Caution && other.CompareTag("Noise"))
         {
-            m_motor.GoToDestination(other.gameObject.transform);
+            //警戒状態に移行.
+            m_alertState = AlertState.Caution;
+            
+            //音の発生源を目的地に設定する.
+            m_motor.GoToDestination(other.gameObject.transform.position);
+        }
+       
+        if (other.CompareTag("Player"))
+        {
+            //発見状態に移行.
+            m_alertState = AlertState.Discover;
         }
 
         if (other.TryGetComponent(out LightZone zone))
@@ -104,11 +126,8 @@ public class EnemyController : MonoBehaviour, IAmbientLightReader
             CalkBrightness();
         }
     }
-
-    public void DiscoverPlayer(Transform player)
-    {
-        m_motor.GoToDestination(player);
-    }
+    /// =======================================================================
+    /// finish
 
     //現在地の明るさを取得.
     void GetCurrentBrightness(float brightness)
@@ -116,16 +135,19 @@ public class EnemyController : MonoBehaviour, IAmbientLightReader
         m_brightness = brightness;
     }
 
-    //複数のLightZone(Collider)に接触した場合最もBrightnessの値が大きいLightZoneのBrightnessを参照する.
+
     public void CalkBrightness()
     {
+        //一つも接触していないとき.
         if (m_lightZones.Count == 0)
         {
+            //デフォルトの値を渡す.
             GetCurrentBrightness(m_defDarkValue);
             return;
         }
         float max = 0f;
 
+        //複数のLightZone(Collider)に接触した場合最もBrightnessの値が大きいLightZoneのBrightnessを参照する.
         foreach (var zone in m_lightZones)
         {
             max = Mathf.Max(max, zone.Brightness);
@@ -140,12 +162,14 @@ public class EnemyController : MonoBehaviour, IAmbientLightReader
         if (m_lightEvaluator == null)
             m_lightEvaluator = GameManager.s_Instance.LightVisibilityEvaluator;
         if (m_player == null)
+        {
             m_player = GameManager.s_Instance.Player.transform;
+            m_enemyEye?.GetPlayer(m_player);
+        }
     }
 
     void CheckViewingScore()
     {
-
         if (m_enemyEye.IsSeePlayer())
         {
             //プレイヤーが見えていたら発見スコア上昇.
@@ -164,6 +188,22 @@ public class EnemyController : MonoBehaviour, IAmbientLightReader
         GameManager.s_Instance.NotifyEnemyScoreChanged(this);
     }
 
+    void ChangeBehaviour()
+    {
+        switch (m_alertState)
+        {
+            case AlertState.Normal:
+                m_motor.Patrol();
+                break;
+            case AlertState.Caution:
+                m_motor.Search();
+                break;
+            case AlertState.Discover:
+                m_motor.Chase();
+                break;
+        }
+    }
+
     private void Update()
     {
         NullCompletion();
@@ -178,18 +218,26 @@ public class EnemyController : MonoBehaviour, IAmbientLightReader
             m_timer = 0;
         }
 
-        switch (m_alertState)
+        //発見スコアの最大値に対する割合で警戒状態を変更.
+        float scorePercentage = (TotalScore / MAX_VIEW_SCORE);
+        //50％以下かつプレイヤーを捜索中でないとき.
+        if (scorePercentage < 0.5f && !m_motor.IsSearching)
         {
-            case AlertState.Normal:
-                m_motor.Patrol();
-                break;
-            case AlertState.Caution:
-                m_motor.Search();
-                break;
-            case AlertState.Discover:
-                m_motor.Chase();
-                break;
+            m_alertState = AlertState.Normal;
         }
+        //50％以上100％以下.
+        else if (scorePercentage >= 0.5f && scorePercentage < 1f)
+        {
+            m_motor.GetTarget(m_player.position);
+            m_alertState = AlertState.Caution;
+        }
+        //100%.
+        else
+        {
+            m_alertState = AlertState.Discover;
+        }
+        Debug.Log($"totalScore={TotalScore},{scorePercentage * 100}%");
+        ChangeBehaviour();
     }
 
     void OnDrawGizmos()

@@ -18,7 +18,7 @@ public class SearchGauge
         return Mathf.Lerp(0f, 10f, Mathf.InverseLerp(0, 50f, score));
     }
 
-    //score‚ğ0`10‚ÌŠÔ‚É•âŠ®.
+    //score‚ğ10`0‚ÌŠÔ‚É•âŠ®.
     public float CalcRightFillValue(float score)
     {
         return Mathf.Lerp(10f, 0f, Mathf.InverseLerp(0, 50f, score));

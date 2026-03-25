@@ -1,16 +1,22 @@
 using UnityEngine;
 public class DiscoveryScore
 {
-    private const float MAX_SCORE = 50;
-    public float IncreaceScore(float totalScore,float ViewingScore)
+    private float m_maxScore;
+
+    public DiscoveryScore(float maxScore)
+    {
+        m_maxScore = maxScore;
+    }
+
+    public float IncreaceScore(float totalScore, float ViewingScore)
     {
         totalScore += ViewingScore * Time.deltaTime;
-        return Mathf.Min(totalScore, MAX_SCORE); ;
+        return Mathf.Min(totalScore, m_maxScore); ;
     }
 
     public float DecreaceScore(float totalScore)
     {
-        totalScore = Mathf.MoveTowards(totalScore, 0f,30f* Time.deltaTime);
+        totalScore = Mathf.MoveTowards(totalScore, 0f, 30f * Time.deltaTime);
         return totalScore;
     }
 }

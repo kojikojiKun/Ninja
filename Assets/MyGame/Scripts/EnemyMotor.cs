@@ -6,11 +6,14 @@ public class EnemyMotor: IEnemyMover
     private EnemyStatus m_status;
     private NavMeshAgent m_agent;
     private Transform[] m_wayPoints;
+    private Vector3 m_lastTargetPos;
     private float[] m_waitTimes;
     private int m_currentPointIndex = 0;
     private int m_direction;
     private float m_waitTime;
-    private float m_timer;
+    private float m_timer_0;
+    private float m_timer_1;
+    public bool IsSearching { get; private set; }
 
     public EnemyMotor(EnemyStatus status,NavMeshAgent agent,PatrolPointData[] pointData)
     {
@@ -26,9 +29,19 @@ public class EnemyMotor: IEnemyMover
         }
     }
 
-    public void GoToDestination(Transform target)
+    public void GetTarget(Vector3 targetPos)
     {
-        m_agent.SetDestination(target.transform.position);
+        if (m_lastTargetPos == Vector3.zero)
+        {
+            Debug.Log("TARGET SET");
+            m_lastTargetPos = targetPos;
+            GoToDestination(m_lastTargetPos);
+        }
+    }
+
+    public void GoToDestination(Vector3 target)
+    {
+        m_agent.SetDestination(target);
     }
 
     bool HasArrival() { 
@@ -44,7 +57,7 @@ public class EnemyMotor: IEnemyMover
         if (m_wayPoints.Length == 0)
             return;
 
-        m_timer = 0;
+        m_timer_0 = 0;
 
         int index = m_currentPointIndex;
         if (index == m_wayPoints.Length - 1)
@@ -55,7 +68,7 @@ public class EnemyMotor: IEnemyMover
         {
             m_direction = 1;
         }
-        GoToDestination(m_wayPoints[m_currentPointIndex]);
+        GoToDestination(m_wayPoints[m_currentPointIndex].position);
         m_currentPointIndex += m_direction;
 
 
@@ -67,14 +80,32 @@ public class EnemyMotor: IEnemyMover
         if (!HasArrival())
             return;
 
-        m_timer += Time.deltaTime;
+        m_timer_0 += Time.deltaTime;
 
-        if (m_timer >= m_waitTime)
+        if (m_timer_0 >= m_waitTime)
         {
             SetNextPoint();
         }
+
+        Debug.Log("PATROL");
     }
 
-    public void Search() { }
-    public void Chase() { }
+    public void Search()
+    {
+        m_timer_1 += Time.deltaTime;
+        IsSearching = true;
+        if (m_timer_1 >= m_status.SearchTime)
+        {
+            IsSearching = false;
+            m_lastTargetPos = Vector3.zero;
+            m_timer_1 = 0;
+        }
+        Debug.Log("SEARCH");
+    }
+
+    public void Chase()
+    {
+        Debug.Log("CHASE");
+        IsSearching = false;
+    }
 }

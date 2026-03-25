@@ -18,7 +18,7 @@ public class UIController : MonoBehaviour
             m_camera = GameManager.s_Instance.MainCamera.transform;
     }
 
-    void ControlFillValue()
+    void ControlSearchGaugeFillValue()
     {
         //スライダーの増え方が違うため、左右別で計算.
         m_sliderLeft.value = m_gauge.CalcLeftFillValue(GameManager.s_Instance.HighestScoreEnemy.TotalScore);
@@ -41,7 +41,7 @@ public class UIController : MonoBehaviour
         if (IsReferenceNull())
             return;
 
-        ControlFillValue();
+        ControlSearchGaugeFillValue();
         m_gauge.TurnToEnemy(
             GameManager.s_Instance.HighestScoreEnemy.transform,
             GameManager.s_Instance.MainCamera
