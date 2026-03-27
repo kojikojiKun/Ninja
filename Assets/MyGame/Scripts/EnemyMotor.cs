@@ -13,7 +13,7 @@ public class EnemyMotor: IEnemyMover
     private float m_waitTime;
     private float m_timer_0;
     private float m_timer_1;
-    public bool IsSearching { get; private set; }
+    public EnemyMoveState MovingState { get; private set; }
 
     public EnemyMotor(EnemyStatus status,NavMeshAgent agent,PatrolPointData[] pointData)
     {
@@ -21,7 +21,6 @@ public class EnemyMotor: IEnemyMover
         m_agent = agent;
         m_wayPoints=new Transform[pointData.Length];
         m_waitTimes=new float[pointData.Length];
-
         for (int i = 0; i < pointData.Length; i++)
         {
             m_wayPoints[i]=pointData[i].Point;
@@ -33,7 +32,7 @@ public class EnemyMotor: IEnemyMover
     {
         if (m_lastTargetPos == Vector3.zero)
         {
-            Debug.Log("TARGET SET");
+            MovingState = EnemyMoveState.Chase;
             m_lastTargetPos = targetPos;
             GoToDestination(m_lastTargetPos);
         }
@@ -44,9 +43,10 @@ public class EnemyMotor: IEnemyMover
         m_agent.SetDestination(target);
     }
 
-    bool HasArrival() { 
-        return m_agent.pathPending==false &&
-            m_agent.remainingDistance<=m_agent.stoppingDistance;
+    bool HasArrival()
+    {
+        return m_agent.pathPending == false &&
+            m_agent.remainingDistance <= m_agent.stoppingDistance;
     }
 
     /* 最後のポイントまで移動したら最初のポイントまで順番に移動する.
@@ -80,32 +80,33 @@ public class EnemyMotor: IEnemyMover
         if (!HasArrival())
             return;
 
+        MovingState = EnemyMoveState.Patrol;
+
         m_timer_0 += Time.deltaTime;
 
         if (m_timer_0 >= m_waitTime)
         {
             SetNextPoint();
         }
-
-        Debug.Log("PATROL");
     }
 
     public void Search()
     {
+        if (!HasArrival())
+            return;
+
         m_timer_1 += Time.deltaTime;
-        IsSearching = true;
         if (m_timer_1 >= m_status.SearchTime)
         {
-            IsSearching = false;
             m_lastTargetPos = Vector3.zero;
+            MovingState = EnemyMoveState.Patrol;
+            Debug.Log("Serch Finished");
             m_timer_1 = 0;
         }
-        Debug.Log("SEARCH");
     }
 
     public void Chase()
     {
-        Debug.Log("CHASE");
-        IsSearching = false;
+        MovingState = EnemyMoveState.Chase;
     }
 }

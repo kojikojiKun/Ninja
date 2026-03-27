@@ -5,6 +5,13 @@ public enum AlertState
     Discover
 }
 
+public enum EnemyMoveState
+{
+    Patrol,
+    Search,
+    Chase
+}
+
 public class EnemyCore : IDamageable
 {
     private EnemyStatus m_status;

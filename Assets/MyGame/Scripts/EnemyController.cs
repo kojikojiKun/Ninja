@@ -11,39 +11,49 @@ public class PatrolPointData
 }
 
 [RequireComponent(typeof(NavMeshAgent))]
+[RequireComponent(typeof(Animator))]
 public class EnemyController : MonoBehaviour, IAmbientLightReader
 {
     [SerializeField] private EnemyData m_data;
     [SerializeField] private PatrolPointData[] m_pointData;
     [SerializeField] private GameObject m_eyeObj;
     [SerializeField] private LayerMask m_sightMask;
-    private Transform m_player;
+    [SerializeField] private float m_defDarkValue;
+    [SerializeField, Range(0, 99.9999f)] private float m_percentageOfChangeCautionState;
+    
     private EnemyStatus m_status;
     private EnemyCore m_core;
     private NavMeshAgent m_agent;
     private EnemyMotor m_motor;
     private EnemyEye m_enemyEye;
     private DiscoveryScore m_disScore;
-    private AlertState m_alertState;
-
-    [SerializeField] private float m_defDarkValue;
     private LightVisibilityEvaluator m_lightEvaluator;
     private HashSet<LightZone> m_lightZones = new HashSet<LightZone>();
+
+    private AlertState m_alertState;
+    private Transform m_player;
+    
     private float m_brightness;
     private float m_checkInterval;
     private float m_timer;
     private const float MAX_VIEW_SCORE = 40f;
-    public float TotalScore { get;private set; }
+
+    public float TotalScore { get; private set; }
 
 
     private void Awake()
     {
         m_agent = GetComponent<NavMeshAgent>();
+
         m_status = new EnemyStatus(m_data);
         m_core = new EnemyCore(m_status);
         m_motor = new EnemyMotor(m_status, m_agent, m_pointData);
         m_enemyEye = new EnemyEye(m_status, m_eyeObj.transform, m_sightMask);
         m_disScore = new DiscoveryScore(MAX_VIEW_SCORE);
+
+        //パーセントを少数になおす。
+        if (m_percentageOfChangeCautionState > 0)
+            m_percentageOfChangeCautionState /= 100;
     }
 
     private void OnEnable()
@@ -87,27 +97,23 @@ public class EnemyController : MonoBehaviour, IAmbientLightReader
         m_lightEvaluator = lightEvaluator;
     }
     /// =======================================================================
-    /// finish
+    /// Read Event Finish
 
 
     /// =======================================================================
-    /// ColliderTriggerEnter
+    /// ColliderTrigger
     /// =======================================================================
     private void OnTriggerEnter(Collider other)
     {
         //プレイヤーの騒音オブジェクトに接触.
         if (m_alertState != AlertState.Caution && other.CompareTag("Noise"))
         {
-            //警戒状態に移行.
             m_alertState = AlertState.Caution;
-            
-            //音の発生源を目的地に設定する.
-            m_motor.GoToDestination(other.gameObject.transform.position);
+            m_motor.GetTarget(other.gameObject.transform.position);
         }
-       
+
         if (other.CompareTag("Player"))
         {
-            //発見状態に移行.
             m_alertState = AlertState.Discover;
         }
 
@@ -127,7 +133,7 @@ public class EnemyController : MonoBehaviour, IAmbientLightReader
         }
     }
     /// =======================================================================
-    /// finish
+    /// ColliderTrigger Finish
 
     //現在地の明るさを取得.
     void GetCurrentBrightness(float brightness)
@@ -170,6 +176,10 @@ public class EnemyController : MonoBehaviour, IAmbientLightReader
 
     void CheckViewingScore()
     {
+        m_timer += Time.deltaTime;
+        if (m_timer < m_checkInterval)
+            return;
+
         if (m_enemyEye.IsSeePlayer())
         {
             //プレイヤーが見えていたら発見スコア上昇.
@@ -185,7 +195,31 @@ public class EnemyController : MonoBehaviour, IAmbientLightReader
             //プレイヤー未発見なら発見スコア減少.
             TotalScore = m_disScore.DecreaceScore(TotalScore);
         }
+
         GameManager.s_Instance.NotifyEnemyScoreChanged(this);
+        m_timer = 0;
+    }
+
+    void ChangeAlertStateByScore()
+    {
+        //発見スコアの最大値に対する割合で警戒状態を変更.
+        float scorePercentage = (TotalScore / MAX_VIEW_SCORE);
+        //プレイヤーを捜索中でないときかつ警戒状態に移行する割合以下.
+        if (m_motor.MovingState != EnemyMoveState.Search && scorePercentage < m_percentageOfChangeCautionState)
+        {
+            m_alertState = AlertState.Normal;
+        }
+        //警戒状態に移行する割合以上100％以下.
+        else if (scorePercentage >= m_percentageOfChangeCautionState && scorePercentage < 1f)
+        {
+            m_motor.GetTarget(m_player.position);
+            m_alertState = AlertState.Caution;
+        }
+        //100%.
+        else
+        {
+            m_alertState = AlertState.Discover;
+        }
     }
 
     void ChangeBehaviour()
@@ -211,32 +245,8 @@ public class EnemyController : MonoBehaviour, IAmbientLightReader
         if (m_core.IsDead() == true)
             return;
 
-        m_timer += Time.deltaTime;
-        if (m_timer >= m_checkInterval)
-        {
-            CheckViewingScore();
-            m_timer = 0;
-        }
-
-        //発見スコアの最大値に対する割合で警戒状態を変更.
-        float scorePercentage = (TotalScore / MAX_VIEW_SCORE);
-        //50％以下かつプレイヤーを捜索中でないとき.
-        if (scorePercentage < 0.5f && !m_motor.IsSearching)
-        {
-            m_alertState = AlertState.Normal;
-        }
-        //50％以上100％以下.
-        else if (scorePercentage >= 0.5f && scorePercentage < 1f)
-        {
-            m_motor.GetTarget(m_player.position);
-            m_alertState = AlertState.Caution;
-        }
-        //100%.
-        else
-        {
-            m_alertState = AlertState.Discover;
-        }
-        Debug.Log($"totalScore={TotalScore},{scorePercentage * 100}%");
+        CheckViewingScore();
+        ChangeAlertStateByScore();
         ChangeBehaviour();
     }
 

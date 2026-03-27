@@ -1,4 +1,4 @@
-public enum MoveState
+public enum PlayerMoveState
 {
     Stop,
     Walk,

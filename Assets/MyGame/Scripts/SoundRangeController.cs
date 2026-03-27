@@ -4,7 +4,7 @@ using UnityEngine;
 public class NoiseRangeProfile
 {
     public Collider NoiseCollider;
-    public MoveState OcuurCondirion ;
+    public PlayerMoveState OcuurCondirion ;
 }
 public class SoundRangeController : MonoBehaviour
 {
@@ -16,7 +16,7 @@ public class SoundRangeController : MonoBehaviour
             m_profiles[i].NoiseCollider.enabled = false;
     }
 
-    public void ApplyNoiseRange(MoveState currentMoveState)
+    public void ApplyNoiseRange(PlayerMoveState currentMoveState)
     {
         foreach(var n in m_profiles)
         {
