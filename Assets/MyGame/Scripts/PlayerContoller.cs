@@ -1,5 +1,4 @@
 using UnityEngine;
-using Unity.Cinemachine;
 
 [RequireComponent(typeof(CharacterController))]
 [RequireComponent(typeof(SoundRangeController))]
@@ -7,7 +6,8 @@ using Unity.Cinemachine;
 public class PlayerContoller : MonoBehaviour, IAmbientLightReader
 {
     [SerializeField] private PlayableEntityData m_data;
-
+    [SerializeField] private float m_timeToHoldInput;
+    [SerializeField] private float m_turnDuraiton;
     private Transform m_camera;
     private CharacterController m_characterController;
     private PlayableEntityStatus m_status;
@@ -23,7 +23,6 @@ public class PlayerContoller : MonoBehaviour, IAmbientLightReader
     private float m_targetSpeed;
     private float m_prevTargetSpeed;
 
-
     private void Awake()
     {
         m_characterController = GetComponent<CharacterController>();
@@ -33,7 +32,7 @@ public class PlayerContoller : MonoBehaviour, IAmbientLightReader
 
         m_status = new PlayableEntityStatus(m_data);
         m_core = new PlayerCore(m_status);
-        m_motor = new PlayerMotor(m_status, m_characterController);
+        m_motor = new PlayerMotor(m_status, m_characterController,m_timeToHoldInput);
         m_playerAnimation = new PlayerAnimation(m_animator);
 
         if (GameManager.s_Instance.MainCamera != null)
@@ -129,7 +128,18 @@ public class PlayerContoller : MonoBehaviour, IAmbientLightReader
 
     private void LateUpdate()
     {
-        Debug.Log(m_motor.CurrentSpeed);
-        m_playerAnimation.MoveAnimation(m_input.MoveInput, m_currentMoveState, m_motor.CurrentSpeed);
+        if (m_input.MoveInput.magnitude > 0.1f)
+        {
+            m_playerAnimation.SetMultiplier(m_motor.SpeedRatio());
+        }
+        else
+        {
+            m_playerAnimation.SetMultiplier(1f);
+        }
+
+        m_playerAnimation.SetMoveParameters(m_input.MoveInput, 
+            m_currentMoveState, 
+            m_motor.CurrentSpeed
+            );
     }
 }

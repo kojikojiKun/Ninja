@@ -1,18 +1,34 @@
 using UnityEngine;
 public class PlayerMotor : IControllable
 {
+    private PlayableEntityStatus m_status;
+    private CharacterController m_controller;
+
     private Vector2 m_input;
+    private Vector2 m_lastInput;
+    private float m_timeToHoldInput;
+    private float m_timer;
+    private float m_timer_1;
+    private bool m_isStartTurn;
+
     public float CurrentSpeed { get; private set; }
     private float m_targetSpeed;
     private const float GRAVITY = -9.81f;
     private float m_velocity_Y = 0f;
-    private PlayableEntityStatus m_status;
-    private CharacterController m_controller;
-
-    public PlayerMotor(PlayableEntityStatus status, CharacterController controller)
+    
+    public PlayerMotor(PlayableEntityStatus status, CharacterController controller,float timeToHoldInput)
     {
         m_status = status;
         m_controller = controller;
+        m_timeToHoldInput = timeToHoldInput;
+    }
+
+    public float SpeedRatio()
+    {
+        float ratio = CurrentSpeed / m_targetSpeed;
+        if (ratio > 1)
+            ratio = 1;
+        return ratio;
     }
 
     void Acceleration()
@@ -35,6 +51,25 @@ public class PlayerMotor : IControllable
 
     void Rotate(Vector3 dir)
     {
+        Vector2 currentInput = m_input;
+        m_timer += Time.deltaTime;
+
+        if (Vector2.Dot(currentInput, m_lastInput) < 0f)
+        {
+            m_isStartTurn = true;
+        }
+
+        if (m_isStartTurn)
+        {
+            m_timer_1 += Time.deltaTime;
+            if (m_timer_1 >= 0.5f)
+            {
+                m_isStartTurn = false;
+                m_timer_1 = 0;
+            }
+        }
+
+        //徐々に正面に向ける.
         Vector3 desierdForward = Vector3.RotateTowards(
             m_controller.transform.forward,
             dir,
@@ -42,8 +77,15 @@ public class PlayerMotor : IControllable
             0f
             );
 
-        if( desierdForward.sqrMagnitude > 0.01f )
-            m_controller.transform.rotation=Quaternion.LookRotation( desierdForward );
+        if (desierdForward.sqrMagnitude > 0.01f)
+            m_controller.transform.rotation = Quaternion.LookRotation(desierdForward);
+
+        //入力を保持.
+        if (m_timer >= m_timeToHoldInput)
+        {
+            m_lastInput = currentInput;
+            m_timer = 0;
+        }
     }
 
     Vector3 FreeFall()
@@ -73,8 +115,12 @@ public class PlayerMotor : IControllable
         if (dir.sqrMagnitude > 1)
             dir.Normalize();
 
+        if (dir.sqrMagnitude > 0.01f)
+            Rotate(dir);
+
+        //加減速実行.
         bool hasInput = input.sqrMagnitude > 0;
-        if (hasInput == true)
+        if (hasInput)
         {
             Acceleration();
         }
@@ -83,14 +129,12 @@ public class PlayerMotor : IControllable
             Deceleraiton();
         }
 
+        //移動ベクトル計算.
         Vector3 horizonal = dir * CurrentSpeed * Time.deltaTime;
         m_controller.Move(horizonal + FreeFall());
-
-        if(dir.sqrMagnitude > 0.01f)
-            Rotate(dir);
     }
 
     public void SetTargetSpeed(float speed) { m_targetSpeed = speed; }
 
-    public void Jump() { m_velocity_Y=m_status.JumpForce; }
+    public void Jump() { m_velocity_Y = m_status.JumpForce; }
 }
