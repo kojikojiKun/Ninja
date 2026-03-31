@@ -6,8 +6,8 @@ using UnityEngine;
 public class PlayerContoller : MonoBehaviour, IAmbientLightReader
 {
     [SerializeField] private PlayableEntityData m_data;
-    [SerializeField] private float m_timeToHoldInput;
-    [SerializeField] private float m_turnDuraiton;
+    [SerializeField] private float m_timeToHold;
+    [SerializeField] private float m_turnDuration;
     private Transform m_camera;
     private CharacterController m_characterController;
     private PlayableEntityStatus m_status;
@@ -32,7 +32,7 @@ public class PlayerContoller : MonoBehaviour, IAmbientLightReader
 
         m_status = new PlayableEntityStatus(m_data);
         m_core = new PlayerCore(m_status);
-        m_motor = new PlayerMotor(m_status, m_characterController,m_timeToHoldInput);
+        m_motor = new PlayerMotor(m_status, m_characterController, m_timeToHold, m_turnDuration);
         m_playerAnimation = new PlayerAnimation(m_animator);
 
         if (GameManager.s_Instance.MainCamera != null)
@@ -62,7 +62,7 @@ public class PlayerContoller : MonoBehaviour, IAmbientLightReader
         m_isCrouching = !m_isCrouching;
     }
 
-    void SetMoveSpeed()
+    void GiveSpeedToMotor()
     {
         bool run = m_input.IsRunPressed;
 
@@ -76,33 +76,7 @@ public class PlayerContoller : MonoBehaviour, IAmbientLightReader
             m_targetSpeed = m_status.CrouchWalkSpeed;
         else
             m_targetSpeed = m_status.WalkSpeed;
-    }
 
-    void SetCurrentMoveState()
-    {
-        float speed = m_motor.CurrentSpeed;
-        if (speed >= m_status.RunSpeed)
-        {
-            m_currentMoveState = PlayerMoveState.Run;
-        }
-        else if (speed > m_status.CrouchWalkSpeed && speed <= m_status.WalkSpeed)
-        {
-            m_currentMoveState = PlayerMoveState.Walk;
-        }
-        else if (m_isCrouching)
-        {
-            m_currentMoveState = PlayerMoveState.Crouch;
-        }
-        else if (!m_isCrouching && speed < m_status.CrouchWalkSpeed)
-        {
-            m_currentMoveState = PlayerMoveState.Stop;
-        }
-
-        m_soundRangeController.ApplyNoiseRange(m_currentMoveState);
-    }
-
-    void GiveSpeedToMotor()
-    {
         if (m_targetSpeed != m_prevTargetSpeed)
         {
             m_motor.SetTargetSpeed(m_targetSpeed);
@@ -118,12 +92,22 @@ public class PlayerContoller : MonoBehaviour, IAmbientLightReader
         if (m_core.IsDead() == true)
             return;
 
-        SetMoveSpeed();
-        SetCurrentMoveState();
+        m_currentMoveState = m_motor.CurrentState(m_isCrouching);
+        m_soundRangeController.ApplyNoiseRange(m_currentMoveState);
         GiveSpeedToMotor();
 
-        if (m_camera != null)
-            m_motor.Move(m_input.MoveInput, m_camera.transform);
+        m_motor.Hold();
+        m_motor.Move(m_input.MoveInput, m_camera.transform);
+
+        bool isMoving = m_input.MoveInput.sqrMagnitude > 0.01f;
+        if (isMoving)
+        {
+            m_motor.Acceleration();
+        }
+        else if(!isMoving || m_motor.IsStartTurn)
+        {
+            m_motor.Deceleraiton();
+        }
     }
 
     private void LateUpdate()
@@ -137,9 +121,12 @@ public class PlayerContoller : MonoBehaviour, IAmbientLightReader
             m_playerAnimation.SetMultiplier(1f);
         }
 
-        m_playerAnimation.SetMoveParameters(m_input.MoveInput, 
-            m_currentMoveState, 
+
+        m_playerAnimation.SetMoveParameters(m_input.MoveInput,
+            m_currentMoveState,
             m_motor.CurrentSpeed
             );
+
+        m_playerAnimation.Turn(m_motor.IsStartTurn);
     }
 }

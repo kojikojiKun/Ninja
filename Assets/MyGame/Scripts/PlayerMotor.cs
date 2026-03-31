@@ -3,24 +3,29 @@ public class PlayerMotor : IControllable
 {
     private PlayableEntityStatus m_status;
     private CharacterController m_controller;
+    private Timer m_holdTimer;
+    private Timer m_turnTimer;
 
     private Vector2 m_input;
     private Vector2 m_lastInput;
-    private float m_timeToHoldInput;
-    private float m_timer;
-    private float m_timer_1;
-    private bool m_isStartTurn;
-
-    public float CurrentSpeed { get; private set; }
+    private Vector3 m_lastHorizonal;
+    private Vector3 m_horizonal;
+    private float m_timeToHold;
+    private float m_turnDuration;
     private float m_targetSpeed;
     private const float GRAVITY = -9.81f;
     private float m_velocity_Y = 0f;
-    
-    public PlayerMotor(PlayableEntityStatus status, CharacterController controller,float timeToHoldInput)
+
+    public bool IsStartTurn { get; private set; }
+    public float CurrentSpeed { get; private set; }
+    public PlayerMotor(PlayableEntityStatus status, CharacterController controller, float hold, float Duration)
     {
         m_status = status;
         m_controller = controller;
-        m_timeToHoldInput = timeToHoldInput;
+        m_timeToHold = hold;
+        m_turnDuration = Duration;
+        m_holdTimer = new Timer();
+        m_turnTimer = new Timer();
     }
 
     public float SpeedRatio()
@@ -31,44 +36,88 @@ public class PlayerMotor : IControllable
         return ratio;
     }
 
-    void Acceleration()
+    //移動速度から状態を決定する.
+    public PlayerMoveState CurrentState(bool isCrouching)
     {
-        CurrentSpeed = Mathf.MoveTowards(
-            CurrentSpeed,
-            m_targetSpeed,
-            m_status.Acceleration * Time.deltaTime
-            );
+        float speed = CurrentSpeed;
+        if (speed > m_status.WalkSpeed)
+        {
+            return  PlayerMoveState.Run;
+        }
+        else if (speed > m_status.CrouchWalkSpeed && speed <= m_status.WalkSpeed)
+        {
+            return PlayerMoveState.Walk;
+        }
+        else if (isCrouching)
+        {
+            return PlayerMoveState.Crouch;
+        }
+        else if (!isCrouching && speed < m_status.CrouchWalkSpeed)
+        {
+            return PlayerMoveState.Stop;
+        }
+
+        return PlayerMoveState.Stop;
     }
 
-    void Deceleraiton()
+    //変数を保持.
+    public void Hold()
     {
-        CurrentSpeed = Mathf.MoveTowards(
+        //スピードが目標の値まで達していて、入力ベクトルが保持しているベクトルに対して逆方向になったとき.
+        if (CurrentSpeed == m_targetSpeed && Vector2.Dot(m_input, m_lastInput) < 0f)
+        {
+            //ターンの検知は入力値基準.
+            IsStartTurn = true;
+        }
+
+        if (IsStartTurn)
+        {
+            if (m_turnTimer.IsOutOfDuration(m_turnDuration))
+            {
+                IsStartTurn = false;
+                m_turnTimer.Reset();
+            }
+        }
+
+        //timeToHold秒前の入力ベクトル,移動方向を保持.
+        if (m_holdTimer.IsOutOfDuration(m_timeToHold))
+        {
+            m_lastInput = m_input;
+            m_lastHorizonal = m_horizonal;
+            m_holdTimer.Reset();
+        }
+    }
+
+    public void Acceleration()
+    {
+        CurrentSpeed = Mathf.Lerp(
+            CurrentSpeed,
+            m_targetSpeed,
+            (1 - Mathf.Exp(-m_status.SharpnessToTargetSpeed * Time.deltaTime))
+            );
+
+        if (m_targetSpeed - CurrentSpeed <= 0.01f)
+            CurrentSpeed = m_targetSpeed;
+    }
+
+    public void Deceleraiton()
+    {
+        float diff = CurrentSpeed;
+
+        float decel = diff / 0.5f;
+
+        CurrentSpeed = Mathf.Lerp(
             CurrentSpeed,
             0f,
-            m_status.Deceleration * Time.deltaTime
+            decel * Time.deltaTime
             );
+
+        if (m_targetSpeed - CurrentSpeed <= 0.01f)
+            CurrentSpeed = m_targetSpeed;
     }
 
     void Rotate(Vector3 dir)
     {
-        Vector2 currentInput = m_input;
-        m_timer += Time.deltaTime;
-
-        if (Vector2.Dot(currentInput, m_lastInput) < 0f)
-        {
-            m_isStartTurn = true;
-        }
-
-        if (m_isStartTurn)
-        {
-            m_timer_1 += Time.deltaTime;
-            if (m_timer_1 >= 0.5f)
-            {
-                m_isStartTurn = false;
-                m_timer_1 = 0;
-            }
-        }
-
         //徐々に正面に向ける.
         Vector3 desierdForward = Vector3.RotateTowards(
             m_controller.transform.forward,
@@ -79,13 +128,6 @@ public class PlayerMotor : IControllable
 
         if (desierdForward.sqrMagnitude > 0.01f)
             m_controller.transform.rotation = Quaternion.LookRotation(desierdForward);
-
-        //入力を保持.
-        if (m_timer >= m_timeToHoldInput)
-        {
-            m_lastInput = currentInput;
-            m_timer = 0;
-        }
     }
 
     Vector3 FreeFall()
@@ -118,20 +160,13 @@ public class PlayerMotor : IControllable
         if (dir.sqrMagnitude > 0.01f)
             Rotate(dir);
 
-        //加減速実行.
-        bool hasInput = input.sqrMagnitude > 0;
-        if (hasInput)
-        {
-            Acceleration();
-        }
-        else
-        {
-            Deceleraiton();
-        }
-
         //移動ベクトル計算.
-        Vector3 horizonal = dir * CurrentSpeed * Time.deltaTime;
-        m_controller.Move(horizonal + FreeFall());
+        m_horizonal = dir * CurrentSpeed * Time.deltaTime;
+
+        if (IsStartTurn)
+            m_horizonal = m_lastHorizonal;
+
+        m_controller.Move(m_horizonal + FreeFall());
     }
 
     public void SetTargetSpeed(float speed) { m_targetSpeed = speed; }

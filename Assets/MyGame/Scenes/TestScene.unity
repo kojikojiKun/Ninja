@@ -3413,8 +3413,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_data: {fileID: 11400000, guid: 49ff64e5dc4540c479fde039a1a1f10d, type: 2}
-  m_timeToHoldInput: 0.2
-  m_turnDuraiton: 0.4
+  m_timeToHold: 0.7
+  m_turnDuration: 0.2
 --- !u!114 &8487630087102206722
 MonoBehaviour:
   m_ObjectHideFlags: 0

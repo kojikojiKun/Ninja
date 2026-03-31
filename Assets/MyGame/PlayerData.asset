@@ -17,6 +17,5 @@ MonoBehaviour:
   RunSpeed: 8
   CrouchWalkSpeed: 1.3
   JumpForce: 2
-  Acceleration: 8
-  Deceleration: 8
+  SharpnessToTargetSpeed: 10
   TurnSpeed: 10

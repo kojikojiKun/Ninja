@@ -4,9 +4,8 @@ public class PlayableEntityStatus {
     public float WalkSpeed;
     public float RunSpeed;
     public float CrouchWalkSpeed;
-    public float JumpForce;   
-    public float Acceleration;
-    public float Deceleration;
+    public float JumpForce;
+    public float SharpnessToTargetSpeed;
     public float TurnSpeed;
 
     public PlayableEntityStatus(PlayableEntityData data)
@@ -17,8 +16,7 @@ public class PlayableEntityStatus {
         RunSpeed = data.RunSpeed;
         CrouchWalkSpeed = data.CrouchWalkSpeed;
         JumpForce = data.JumpForce;
-        Acceleration = data.Acceleration;
-        Deceleration = data.Deceleration;
+        SharpnessToTargetSpeed = data.SharpnessToTargetSpeed;
         TurnSpeed = data.TurnSpeed;
     }
 }

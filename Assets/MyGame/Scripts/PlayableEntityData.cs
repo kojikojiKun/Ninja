@@ -8,7 +8,6 @@ public class PlayableEntityData : ScriptableObject
     public float RunSpeed;
     public float CrouchWalkSpeed;
     public float JumpForce;
-    public float Acceleration;
-    public float Deceleration;
+    public float SharpnessToTargetSpeed;
     public float TurnSpeed;
 }
