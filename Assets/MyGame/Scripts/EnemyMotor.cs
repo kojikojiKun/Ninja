@@ -11,8 +11,8 @@ public class EnemyMotor: IEnemyMover
     private int m_currentPointIndex = 0;
     private int m_direction;
     private float m_waitTime;
-    private float m_timer_0;
-    private float m_timer_1;
+    private Timer m_patrolTimer;
+    private Timer m_searchTimer;
     public EnemyMoveState MovingState { get; private set; }
 
     public EnemyMotor(EnemyStatus status,NavMeshAgent agent,PatrolPointData[] pointData)
@@ -26,6 +26,11 @@ public class EnemyMotor: IEnemyMover
             m_wayPoints[i]=pointData[i].Point;
             m_waitTimes[i] = pointData[i].WaitTime;
         }
+        m_patrolTimer = new Timer();
+        m_searchTimer = new Timer();
+
+        m_patrolTimer.Reset();
+        m_searchTimer.Reset();
     }
 
     public void GetTarget(Vector3 targetPos)
@@ -57,7 +62,7 @@ public class EnemyMotor: IEnemyMover
         if (m_wayPoints.Length == 0)
             return;
 
-        m_timer_0 = 0;
+        m_patrolTimer.Reset();
 
         int index = m_currentPointIndex;
         if (index == m_wayPoints.Length - 1)
@@ -82,12 +87,8 @@ public class EnemyMotor: IEnemyMover
 
         MovingState = EnemyMoveState.Patrol;
 
-        m_timer_0 += Time.deltaTime;
-
-        if (m_timer_0 >= m_waitTime)
-        {
+        if (m_patrolTimer.IsOutOfDuration(m_waitTime))
             SetNextPoint();
-        }
     }
 
     public void Search()
@@ -95,13 +96,11 @@ public class EnemyMotor: IEnemyMover
         if (!HasArrival())
             return;
 
-        m_timer_1 += Time.deltaTime;
-        if (m_timer_1 >= m_status.SearchTime)
+        if (m_searchTimer.IsOutOfDuration(m_status.SearchTime))
         {
             m_lastTargetPos = Vector3.zero;
             MovingState = EnemyMoveState.Patrol;
-            Debug.Log("Serch Finished");
-            m_timer_1 = 0;
+            m_searchTimer.Reset();
         }
     }
 

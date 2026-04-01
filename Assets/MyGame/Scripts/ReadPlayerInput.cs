@@ -4,11 +4,12 @@ using System;
 
 public class ReadPlayerInput : MonoBehaviour
 {
-    public Vector2 MoveInput { get; private set; }
-    public bool IsRunPressed { get; private set; }
-
     public event Action OnCrouchPressed;
     public event Action OnJumpPressed;
+    public event Action OnAttackPressed;
+
+    public Vector2 MoveInput { get; private set; }
+    public bool IsRunPressed { get; private set; }
 
     public void OnMove(InputAction.CallbackContext context)
     {
@@ -37,5 +38,11 @@ public class ReadPlayerInput : MonoBehaviour
     {
         if (context.started)
             OnJumpPressed?.Invoke();
+    }
+
+    public void OnAttack(InputAction.CallbackContext context)
+    {
+        if (context.started)
+            OnAttackPressed?.Invoke();
     }
 }

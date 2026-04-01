@@ -12,20 +12,28 @@ public class PlayerMotor : IControllable
     private Vector3 m_horizonal;
     private float m_timeToHold;
     private float m_turnDuration;
-    private float m_targetSpeed;
+    private float m_targetSpeed;  
     private const float GRAVITY = -9.81f;
     private float m_velocity_Y = 0f;
 
     public bool IsStartTurn { get; private set; }
     public float CurrentSpeed { get; private set; }
-    public PlayerMotor(PlayableEntityStatus status, CharacterController controller, float hold, float Duration)
+
+    public PlayerMotor(PlayableEntityStatus status, CharacterController controller)
     {
         m_status = status;
         m_controller = controller;
-        m_timeToHold = hold;
-        m_turnDuration = Duration;
         m_holdTimer = new Timer();
         m_turnTimer = new Timer();
+
+        m_holdTimer.Reset();
+        m_turnTimer.Reset();
+    }
+
+    public void SetFloat(float hold, float Duration)
+    {
+        m_timeToHold = hold;
+        m_turnDuration = Duration;
     }
 
     public float SpeedRatio()
@@ -172,4 +180,9 @@ public class PlayerMotor : IControllable
     public void SetTargetSpeed(float speed) { m_targetSpeed = speed; }
 
     public void Jump() { m_velocity_Y = m_status.JumpForce; }
+
+    public void Attack()
+    {
+
+    }
 }

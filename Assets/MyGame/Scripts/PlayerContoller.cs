@@ -1,4 +1,5 @@
 using UnityEngine;
+using System.Collections;
 
 [RequireComponent(typeof(CharacterController))]
 [RequireComponent(typeof(SoundRangeController))]
@@ -8,6 +9,9 @@ public class PlayerContoller : MonoBehaviour, IAmbientLightReader
     [SerializeField] private PlayableEntityData m_data;
     [SerializeField] private float m_timeToHold;
     [SerializeField] private float m_turnDuration;
+    [SerializeField] private float m_inputReceptionTime;
+    [SerializeField] private float m_inputIgnoreTime;
+
     private Transform m_camera;
     private CharacterController m_characterController;
     private PlayableEntityStatus m_status;
@@ -17,11 +21,14 @@ public class PlayerContoller : MonoBehaviour, IAmbientLightReader
     private SoundRangeController m_soundRangeController;
     private Animator m_animator;
     private PlayerAnimation m_playerAnimation;
+    private Timer m_receptionTimer;
+    private Timer m_ignoreTimer;
 
     private PlayerMoveState m_currentMoveState;
     private bool m_isCrouching;
     private float m_targetSpeed;
     private float m_prevTargetSpeed;
+    private int m_comboCount;
 
     private void Awake()
     {
@@ -32,8 +39,13 @@ public class PlayerContoller : MonoBehaviour, IAmbientLightReader
 
         m_status = new PlayableEntityStatus(m_data);
         m_core = new PlayerCore(m_status);
-        m_motor = new PlayerMotor(m_status, m_characterController, m_timeToHold, m_turnDuration);
+        m_motor = new PlayerMotor(m_status, m_characterController);
+        m_motor.SetFloat(m_timeToHold, m_turnDuration);
         m_playerAnimation = new PlayerAnimation(m_animator);
+        m_receptionTimer = new Timer();
+        m_ignoreTimer = new Timer();
+
+        m_comboCount = 0;
 
         if (GameManager.s_Instance.MainCamera != null)
             m_camera = GameManager.s_Instance.MainCamera.transform;
@@ -43,12 +55,14 @@ public class PlayerContoller : MonoBehaviour, IAmbientLightReader
     {
         m_input.OnJumpPressed += HandleJump;
         m_input.OnCrouchPressed += HandleCrouch;
+        m_input.OnAttackPressed += HandleAttack;
     }
 
     private void OnDisable()
     {
         m_input.OnJumpPressed -= HandleJump;
         m_input.OnCrouchPressed -= HandleCrouch;
+        m_input.OnAttackPressed -= HandleAttack;
     }
 
     void HandleJump()
@@ -60,6 +74,19 @@ public class PlayerContoller : MonoBehaviour, IAmbientLightReader
     void HandleCrouch()
     {
         m_isCrouching = !m_isCrouching;
+    }
+
+    void HandleAttack()
+    {
+        StartCoroutine(ComboCount());
+    }
+
+    private IEnumerator ComboCount()
+    {
+        while (m_ignoreTimer.IsOutOfDuration(m_inputIgnoreTime) && !m_receptionTimer.IsOutOfDuration(m_inputReceptionTime))
+        {
+            yield return null;
+        }
     }
 
     void GiveSpeedToMotor()

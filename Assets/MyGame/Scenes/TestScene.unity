@@ -3174,7 +3174,19 @@ MonoBehaviour:
     m_ActionId: f6308568-3841-41c7-8dc9-c1ba4ebf0128
     m_ActionName: 'Player/OpenMenu[/Keyboard/escape]'
   - m_PersistentCalls:
-      m_Calls: []
+      m_Calls:
+      - m_Target: {fileID: 8487630087102206722}
+        m_TargetAssemblyTypeName: ReadPlayerInput, Assembly-CSharp
+        m_MethodName: OnAttack
+        m_Mode: 0
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
     m_ActionId: 6991ba66-d319-4a87-98a1-f6d8279878d8
     m_ActionName: 'Player/Attack[/Mouse/leftButton]'
   - m_PersistentCalls:
@@ -3415,6 +3427,8 @@ MonoBehaviour:
   m_data: {fileID: 11400000, guid: 49ff64e5dc4540c479fde039a1a1f10d, type: 2}
   m_timeToHold: 0.7
   m_turnDuration: 0.2
+  m_inputReceptionTime: 0.5
+  m_inputIgnoreTime: 0.1
 --- !u!114 &8487630087102206722
 MonoBehaviour:
   m_ObjectHideFlags: 0

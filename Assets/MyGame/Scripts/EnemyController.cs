@@ -29,13 +29,13 @@ public class EnemyController : MonoBehaviour, IAmbientLightReader
     private DiscoveryScore m_disScore;
     private LightVisibilityEvaluator m_lightEvaluator;
     private HashSet<LightZone> m_lightZones = new HashSet<LightZone>();
+    private Timer m_timer;
 
     private AlertState m_alertState;
     private Transform m_player;
     
     private float m_brightness;
     private float m_checkInterval;
-    private float m_timer;
     private const float MAX_VIEW_SCORE = 40f;
 
     public float TotalScore { get; private set; }
@@ -50,10 +50,13 @@ public class EnemyController : MonoBehaviour, IAmbientLightReader
         m_motor = new EnemyMotor(m_status, m_agent, m_pointData);
         m_enemyEye = new EnemyEye(m_status, m_eyeObj.transform, m_sightMask);
         m_disScore = new DiscoveryScore(MAX_VIEW_SCORE);
+        m_timer = new Timer();
 
         //パーセントを少数になおす。
         if (m_percentageOfChangeCautionState > 0)
             m_percentageOfChangeCautionState /= 100;
+
+        m_timer.Reset();
     }
 
     private void OnEnable()
@@ -176,8 +179,7 @@ public class EnemyController : MonoBehaviour, IAmbientLightReader
 
     void CheckViewingScore()
     {
-        m_timer += Time.deltaTime;
-        if (m_timer < m_checkInterval)
+        if(!m_timer.IsOutOfDuration(m_checkInterval))
             return;
 
         if (m_enemyEye.IsSeePlayer())
@@ -197,7 +199,8 @@ public class EnemyController : MonoBehaviour, IAmbientLightReader
         }
 
         GameManager.s_Instance.NotifyEnemyScoreChanged(this);
-        m_timer = 0;
+
+        m_timer.Reset();
     }
 
     void ChangeAlertStateByScore()
