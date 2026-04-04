@@ -41,8 +41,8 @@ ModelImporter:
       name: CA_Sprint_Fwd_TurnR_180
       takeName: Unreal Take
       internalID: 8993902097722301239
-      firstFrame: 0
-      lastFrame: 40
+      firstFrame: 10
+      lastFrame: 24
       wrapMode: 0
       orientationOffsetY: 0
       level: 0

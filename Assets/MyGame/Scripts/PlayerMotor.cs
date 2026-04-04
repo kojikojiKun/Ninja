@@ -44,28 +44,33 @@ public class PlayerMotor : IControllable
         return ratio;
     }
 
-    //ˆÚ“®‘¬“x‚©‚çó‘Ô‚ðŒˆ’è‚·‚é.
-    public PlayerMoveState CurrentState(bool isCrouching)
+    //“ü—Íó‹µ‚©‚çˆÚ“®ó‘Ô‚ð•Ô‚·.
+    public PlayerMoveState CurrentState(bool isRunPressed, bool isStartCrouching)
     {
-        float speed = CurrentSpeed;
-        if (speed > m_status.WalkSpeed)
+        PlayerMoveState state = new PlayerMoveState();
+        float inputValue = m_input.magnitude;
+        if (inputValue > 0f && isRunPressed)
         {
-            return  PlayerMoveState.Run;
+            state = PlayerMoveState.Run;
         }
-        else if (speed > m_status.CrouchWalkSpeed && speed <= m_status.WalkSpeed)
+        else if (inputValue > 0f && isStartCrouching)
         {
-            return PlayerMoveState.Walk;
+            state = PlayerMoveState.Crouch;
         }
-        else if (isCrouching)
+        else if(inputValue>0f && !isRunPressed && !isStartCrouching)
         {
-            return PlayerMoveState.Crouch;
+            state = PlayerMoveState.Walk;
         }
-        else if (!isCrouching && speed < m_status.CrouchWalkSpeed)
+        else if (inputValue == 0f && isStartCrouching)
         {
-            return PlayerMoveState.Stop;
+            state = PlayerMoveState.CrouchIdle;
+        }
+        else
+        {
+            state = PlayerMoveState.Idle;
         }
 
-        return PlayerMoveState.Stop;
+        return state;
     }
 
     //•Ï”‚ð•ÛŽ.
@@ -104,7 +109,7 @@ public class PlayerMotor : IControllable
             (1 - Mathf.Exp(-m_status.SharpnessToTargetSpeed * Time.deltaTime))
             );
 
-        if (m_targetSpeed - CurrentSpeed <= 0.01f)
+        if (m_targetSpeed - CurrentSpeed <= 0.1f)
             CurrentSpeed = m_targetSpeed;
     }
 
@@ -120,8 +125,8 @@ public class PlayerMotor : IControllable
             decel * Time.deltaTime
             );
 
-        if (m_targetSpeed - CurrentSpeed <= 0.01f)
-            CurrentSpeed = m_targetSpeed;
+        if (CurrentSpeed <= 0.5f)
+            CurrentSpeed = 0;
     }
 
     void Rotate(Vector3 dir)

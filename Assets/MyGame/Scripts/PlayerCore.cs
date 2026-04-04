@@ -1,9 +1,10 @@
 public enum PlayerMoveState
 {
-    Stop,
+    Idle,
     Walk,
     Run,
-    Crouch
+    Crouch,
+    CrouchIdle
 }
 
 public class PlayerCore :IDamageable

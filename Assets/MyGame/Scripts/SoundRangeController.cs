@@ -16,6 +16,7 @@ public class SoundRangeController : MonoBehaviour
             m_profiles[i].NoiseCollider.enabled = false;
     }
 
+    //移動状態に応じたコライダーをアクティブ.
     public void ApplyNoiseRange(PlayerMoveState currentMoveState)
     {
         foreach(var n in m_profiles)

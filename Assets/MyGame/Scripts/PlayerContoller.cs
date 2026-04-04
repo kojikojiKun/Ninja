@@ -21,14 +21,11 @@ public class PlayerContoller : MonoBehaviour, IAmbientLightReader
     private SoundRangeController m_soundRangeController;
     private Animator m_animator;
     private PlayerAnimation m_playerAnimation;
-    private Timer m_receptionTimer;
-    private Timer m_ignoreTimer;
 
     private PlayerMoveState m_currentMoveState;
-    private bool m_isCrouching;
     private float m_targetSpeed;
     private float m_prevTargetSpeed;
-    private int m_comboCount;
+    private bool m_isStartCrouch;
 
     private void Awake()
     {
@@ -42,10 +39,6 @@ public class PlayerContoller : MonoBehaviour, IAmbientLightReader
         m_motor = new PlayerMotor(m_status, m_characterController);
         m_motor.SetFloat(m_timeToHold, m_turnDuration);
         m_playerAnimation = new PlayerAnimation(m_animator);
-        m_receptionTimer = new Timer();
-        m_ignoreTimer = new Timer();
-
-        m_comboCount = 0;
 
         if (GameManager.s_Instance.MainCamera != null)
             m_camera = GameManager.s_Instance.MainCamera.transform;
@@ -73,36 +66,30 @@ public class PlayerContoller : MonoBehaviour, IAmbientLightReader
 
     void HandleCrouch()
     {
-        m_isCrouching = !m_isCrouching;
+        m_isStartCrouch = !m_isStartCrouch;
     }
 
     void HandleAttack()
     {
-        StartCoroutine(ComboCount());
-    }
-
-    private IEnumerator ComboCount()
-    {
-        while (m_ignoreTimer.IsOutOfDuration(m_inputIgnoreTime) && !m_receptionTimer.IsOutOfDuration(m_inputReceptionTime))
-        {
-            yield return null;
-        }
+        m_motor.Attack();
     }
 
     void GiveSpeedToMotor()
     {
-        bool run = m_input.IsRunPressed;
-
-        //à⁄ìÆèÛë‘Ç…âûÇ∂Çƒà⁄ìÆë¨ìxÇïœçX.
-        if (run)
+        bool isRunPressed = m_input.IsRunPressed;
+        if (isRunPressed)
         {
-            m_isCrouching = false;
+            m_isStartCrouch = false;
             m_targetSpeed = m_status.RunSpeed;
         }
-        else if (m_isCrouching)
+        else if (m_isStartCrouch)
+        {
             m_targetSpeed = m_status.CrouchWalkSpeed;
-        else
+        }
+        else if (!isRunPressed && !m_isStartCrouch)
+        {
             m_targetSpeed = m_status.WalkSpeed;
+        }
 
         if (m_targetSpeed != m_prevTargetSpeed)
         {
@@ -119,8 +106,8 @@ public class PlayerContoller : MonoBehaviour, IAmbientLightReader
         if (m_core.IsDead() == true)
             return;
 
-        m_currentMoveState = m_motor.CurrentState(m_isCrouching);
         m_soundRangeController.ApplyNoiseRange(m_currentMoveState);
+        m_currentMoveState = m_motor.CurrentState(m_input.IsRunPressed, m_isStartCrouch);
         GiveSpeedToMotor();
 
         m_motor.Hold();
@@ -149,11 +136,11 @@ public class PlayerContoller : MonoBehaviour, IAmbientLightReader
         }
 
 
-        m_playerAnimation.SetMoveParameters(m_input.MoveInput,
+        m_playerAnimation.MoveAnimation(m_input.MoveInput,
             m_currentMoveState,
             m_motor.CurrentSpeed
             );
 
-        m_playerAnimation.Turn(m_motor.IsStartTurn);
+        m_playerAnimation.StartTurn(m_motor.IsStartTurn);
     }
 }
