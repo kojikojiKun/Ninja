@@ -43,7 +43,6 @@ GameObject:
   - component: {fileID: 6806350557864284764}
   - component: {fileID: 6479897476878984264}
   - component: {fileID: 3192823352503124619}
-  - component: {fileID: 908376030109132496}
   m_Layer: 0
   m_Name: Cube
   m_TagString: Untagged
@@ -123,27 +122,6 @@ MeshRenderer:
   m_SortingOrder: 0
   m_MaskInteraction: 0
   m_AdditionalVertexStreams: {fileID: 0}
---- !u!65 &908376030109132496
-BoxCollider:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 5772337876165688306}
-  m_Material: {fileID: 0}
-  m_IncludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_ExcludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_LayerOverridePriority: 0
-  m_IsTrigger: 0
-  m_ProvidesContacts: 0
-  m_Enabled: 1
-  serializedVersion: 3
-  m_Size: {x: 1, y: 1, z: 1}
-  m_Center: {x: 0, y: 0, z: 0}
 --- !u!1 &8440819683742700514
 GameObject:
   m_ObjectHideFlags: 0
@@ -159,7 +137,8 @@ GameObject:
   - component: {fileID: 227822290010534871}
   - component: {fileID: 2296491248731654876}
   - component: {fileID: 6812146386250841030}
-  m_Layer: 0
+  - component: {fileID: 8910247256635375342}
+  m_Layer: 10
   m_Name: Enemy
   m_TagString: Enemy
   m_Icon: {fileID: 0}
@@ -324,14 +303,37 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::NewEnemyController
   m_data: {fileID: 11400000, guid: a95de64d511737744999bb80646d34f8, type: 2}
-  m_pointData:
-  - Point: {fileID: 0}
-    WaitTime: 10
-  - Point: {fileID: 0}
-    WaitTime: 10
-  m_eyeObj: {fileID: 3455096172418412513}
-  m_sightMask:
-    serializedVersion: 2
-    m_Bits: 768
+  m_pointData: []
+  m_viewTargetProfile:
+    RayOrigin: {fileID: 2849700565593398188}
+    Mask:
+      serializedVersion: 2
+      m_Bits: 768
+    TargetTagName: Player
+    CheckInterval: 0.2
+    Angle: 0
+    Distanece: 0
   m_defDarkValue: 0.2
   m_percentageOfChangeCautionState: 35
+--- !u!95 &8910247256635375342
+Animator:
+  serializedVersion: 7
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8440819683742700514}
+  m_Enabled: 1
+  m_Avatar: {fileID: 0}
+  m_Controller: {fileID: 0}
+  m_CullingMode: 0
+  m_UpdateMode: 0
+  m_ApplyRootMotion: 0
+  m_LinearVelocityBlending: 0
+  m_StabilizeFeet: 0
+  m_AnimatePhysics: 0
+  m_WarningMessage: 
+  m_HasTransformHierarchy: 1
+  m_AllowConstantClipSamplingOptimization: 1
+  m_KeepAnimatorStateOnDisable: 0
+  m_WriteDefaultValuesOnDisable: 0

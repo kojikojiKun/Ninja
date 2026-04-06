@@ -1,13 +1,12 @@
 using UnityEngine;
-using System.Collections;
+using System.Collections.Generic;
 
 [RequireComponent(typeof(CharacterController))]
-[RequireComponent(typeof(SoundRangeController))]
-[RequireComponent(typeof(ReadPlayerInput))]
-public class PlayerContoller : MonoBehaviour, IAmbientLightReader
+public class PlayerContoller : MonoBehaviour
 {
     [SerializeField] private PlayableEntityData m_data;
-    [SerializeField] private float m_timeToHold;
+    [SerializeField] private ViewTargetProfile m_viewProfile;
+    [SerializeField] private float m_timeToHoldDirection;
     [SerializeField] private float m_turnDuration;
     [SerializeField] private float m_inputReceptionTime;
     [SerializeField] private float m_inputIgnoreTime;
@@ -21,6 +20,8 @@ public class PlayerContoller : MonoBehaviour, IAmbientLightReader
     private SoundRangeController m_soundRangeController;
     private Animator m_animator;
     private PlayerAnimation m_playerAnimation;
+    private ViewTarget m_viewTarget;
+    private AssassinationRange m_asRange;
 
     private PlayerMoveState m_currentMoveState;
     private float m_targetSpeed;
@@ -33,11 +34,14 @@ public class PlayerContoller : MonoBehaviour, IAmbientLightReader
         m_soundRangeController = GetComponent<SoundRangeController>();
         m_input = GetComponent<ReadPlayerInput>();
         m_animator = GetComponent<Animator>();
+        m_asRange = GetComponent<AssassinationRange>();
 
         m_status = new PlayableEntityStatus(m_data);
         m_core = new PlayerCore(m_status);
         m_motor = new PlayerMotor(m_status, m_characterController);
-        m_motor.SetFloat(m_timeToHold, m_turnDuration);
+        m_viewTarget = new ViewTarget(m_viewProfile);
+
+        m_motor.SetFloat(m_timeToHoldDirection, m_turnDuration);
         m_playerAnimation = new PlayerAnimation(m_animator);
 
         if (GameManager.s_Instance.MainCamera != null)

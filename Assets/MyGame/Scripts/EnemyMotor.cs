@@ -1,7 +1,7 @@
 using UnityEngine;
 using UnityEngine.AI;
 
-public class EnemyMotor: IEnemyMover
+public class EnemyMotor
 {
     private EnemyStatus m_status;
     private NavMeshAgent m_agent;

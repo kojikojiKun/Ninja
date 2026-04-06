@@ -12,20 +12,19 @@ public class PatrolPointData
 
 [RequireComponent(typeof(NavMeshAgent))]
 [RequireComponent(typeof(Animator))]
-public class EnemyController : MonoBehaviour, IAmbientLightReader
+public class EnemyController : MonoBehaviour
 {
     [SerializeField] private EnemyData m_data;
     [SerializeField] private PatrolPointData[] m_pointData;
-    [SerializeField] private GameObject m_eyeObj;
-    [SerializeField] private LayerMask m_sightMask;
+    [SerializeField] private ViewTargetProfile m_viewTargetProfile;
     [SerializeField] private float m_defDarkValue;
     [SerializeField, Range(0, 99.9999f)] private float m_percentageOfChangeCautionState;
-    
+
     private EnemyStatus m_status;
     private EnemyCore m_core;
     private NavMeshAgent m_agent;
     private EnemyMotor m_motor;
-    private EnemyEye m_enemyEye;
+    private ViewTarget m_viewTarget;
     private DiscoveryScore m_disScore;
     private LightVisibilityEvaluator m_lightEvaluator;
     private HashSet<LightZone> m_lightZones = new HashSet<LightZone>();
@@ -33,10 +32,9 @@ public class EnemyController : MonoBehaviour, IAmbientLightReader
 
     private AlertState m_alertState;
     private Transform m_player;
-    
     private float m_brightness;
-    private float m_checkInterval;
     private const float MAX_VIEW_SCORE = 40f;
+    private const float CHECK_VIEW_INTERVAL = 0.2f;
 
     public float TotalScore { get; private set; }
 
@@ -46,12 +44,13 @@ public class EnemyController : MonoBehaviour, IAmbientLightReader
         m_agent = GetComponent<NavMeshAgent>();
 
         m_status = new EnemyStatus(m_data);
-        m_core = new EnemyCore(m_status);
+        m_core = new EnemyCore(m_status,this.transform);
         m_motor = new EnemyMotor(m_status, m_agent, m_pointData);
-        m_enemyEye = new EnemyEye(m_status, m_eyeObj.transform, m_sightMask);
+        m_viewTarget = new ViewTarget(m_viewTargetProfile);
         m_disScore = new DiscoveryScore(MAX_VIEW_SCORE);
         m_timer = new Timer();
 
+        m_viewTarget.OverrideValues(m_status.ViewAngle, m_status.ViewDistance);
         //パーセントを少数になおす。
         if (m_percentageOfChangeCautionState > 0)
             m_percentageOfChangeCautionState /= 100;
@@ -76,32 +75,6 @@ public class EnemyController : MonoBehaviour, IAmbientLightReader
         GameManager.s_Instance.OnPlayerSpawned -= OnPlayerSpawned;
         GameManager.s_Instance.OnCachedLights -= OnCachedLights;
     }
-
-    private void Start()
-    {
-        if (GameManager.s_Instance?.Player != null && m_player == null)
-            OnPlayerSpawned(GameManager.s_Instance.Player.transform);
-
-        if (GameManager.s_Instance?.LightVisibilityEvaluator != null && m_lightEvaluator == null)
-            OnCachedLights(GameManager.s_Instance.LightVisibilityEvaluator);
-    }
-
-    /// =======================================================================
-    /// Read Event
-    /// =======================================================================
-    void OnPlayerSpawned(Transform player)
-    {
-        m_enemyEye?.GetPlayer(player);
-        m_player = player;
-    }
-
-    void OnCachedLights(LightVisibilityEvaluator lightEvaluator)
-    {
-        m_lightEvaluator = lightEvaluator;
-    }
-    /// =======================================================================
-    /// Read Event Finish
-
 
     /// =======================================================================
     /// ColliderTrigger
@@ -137,13 +110,36 @@ public class EnemyController : MonoBehaviour, IAmbientLightReader
     }
     /// =======================================================================
     /// ColliderTrigger Finish
+    private void Start()
+    {
+        if (GameManager.s_Instance?.Player != null && m_player == null)
+            OnPlayerSpawned(GameManager.s_Instance.Player.transform);
+
+        if (GameManager.s_Instance?.LightVisibilityEvaluator != null && m_lightEvaluator == null)
+            OnCachedLights(GameManager.s_Instance.LightVisibilityEvaluator);
+    }
+
+    /// =======================================================================
+    /// Read Event
+    /// =======================================================================
+    void OnPlayerSpawned(Transform player)
+    {
+        m_viewTarget.GetTarget(player);
+        m_player = player;
+    }
+
+    void OnCachedLights(LightVisibilityEvaluator lightEvaluator)
+    {
+        m_lightEvaluator = lightEvaluator;
+    }
+    /// =======================================================================
+    /// Read Event Finish
 
     //現在地の明るさを取得.
     void GetCurrentBrightness(float brightness)
     {
         m_brightness = brightness;
     }
-
 
     public void CalkBrightness()
     {
@@ -173,16 +169,16 @@ public class EnemyController : MonoBehaviour, IAmbientLightReader
         if (m_player == null)
         {
             m_player = GameManager.s_Instance.Player.transform;
-            m_enemyEye?.GetPlayer(m_player);
+            m_viewTarget.GetTarget(m_player);
         }
     }
 
     void CheckViewingScore()
     {
-        if(!m_timer.IsOutOfDuration(m_checkInterval))
+        if (!m_timer.IsOutOfDuration(CHECK_VIEW_INTERVAL))
             return;
 
-        if (m_enemyEye.IsSeePlayer())
+        if (m_viewTarget.IsSeeTarget())
         {
             //プレイヤーが見えていたら発見スコア上昇.
             TotalScore = m_disScore.IncreaceScore(TotalScore, m_lightEvaluator.EaseOfViewingScore(
@@ -191,6 +187,8 @@ public class EnemyController : MonoBehaviour, IAmbientLightReader
                 m_brightness,
                 m_status.ViewDistance
                 ));
+
+            Debug.Log(TotalScore);
         }
         else
         {
@@ -199,8 +197,6 @@ public class EnemyController : MonoBehaviour, IAmbientLightReader
         }
 
         GameManager.s_Instance.NotifyEnemyScoreChanged(this);
-
-        m_timer.Reset();
     }
 
     void ChangeAlertStateByScore()
@@ -244,21 +240,19 @@ public class EnemyController : MonoBehaviour, IAmbientLightReader
     private void Update()
     {
         NullCompletion();
-
         if (m_core.IsDead() == true)
             return;
-
         CheckViewingScore();
         ChangeAlertStateByScore();
         ChangeBehaviour();
     }
 
-    void OnDrawGizmos()
+    /*void OnDrawGizmos()
     {
-        if (m_eyeObj == null || m_status == null)
+        if (m_viewTargetProfile.RayOrigin == null)
             return;
 
-        Vector3 origin = m_eyeObj.transform.position;
+        Vector3 origin = m_viewTargetProfile.RayOrigin.transform.position;
         float dist = m_status.ViewDistance;
         float angle = m_status.ViewAngle;
 
@@ -273,7 +267,7 @@ public class EnemyController : MonoBehaviour, IAmbientLightReader
             float t = (float)i / segments;
             float currentAngle = -angle * 0.5f + angle * t;
 
-            Vector3 dir = Quaternion.Euler(0, currentAngle, 0) * m_eyeObj.transform.forward;
+            Vector3 dir = Quaternion.Euler(0, currentAngle, 0) * m_viewTargetProfile.RayOrigin.transform.forward;
             Vector3 point = origin + dir * dist;
 
             Gizmos.DrawLine(origin, point);
@@ -284,4 +278,5 @@ public class EnemyController : MonoBehaviour, IAmbientLightReader
             prevPoint = point;
         }
     }
+    */
 }
