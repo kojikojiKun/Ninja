@@ -11,7 +11,7 @@ public class PlayerContoller : MonoBehaviour
     [SerializeField] private float m_inputReceptionTime;
     [SerializeField] private float m_inputIgnoreTime;
 
-    private Transform m_camera;
+    private Camera m_camera;
     private CharacterController m_characterController;
     private PlayableEntityStatus m_status;
     private PlayerCore m_core;
@@ -43,9 +43,11 @@ public class PlayerContoller : MonoBehaviour
 
         m_motor.SetFloat(m_timeToHoldDirection, m_turnDuration);
         m_playerAnimation = new PlayerAnimation(m_animator);
+    }
 
-        if (GameManager.s_Instance.MainCamera != null)
-            m_camera = GameManager.s_Instance.MainCamera.transform;
+    public void Initialize(Camera camera)
+    {
+        m_camera = camera;
     }
 
     private void OnEnable()
@@ -76,6 +78,7 @@ public class PlayerContoller : MonoBehaviour
     void HandleAttack()
     {
         m_motor.Attack();
+
     }
 
     void GiveSpeedToMotor()
@@ -104,10 +107,7 @@ public class PlayerContoller : MonoBehaviour
 
     private void Update()
     {
-        if (m_camera == null)
-            m_camera = GameManager.s_Instance.MainCamera.transform;
-
-        if (m_core.IsDead() == true)
+        if (m_core.IsDead() == true || m_camera == null)
             return;
 
         m_soundRangeController.ApplyNoiseRange(m_currentMoveState);

@@ -1,21 +1,23 @@
+using System.Collections.Generic;
 using UnityEngine;
 
 public class LightVisibilityEvaluator
 {
     private LayerMask m_shadowBlock;
-    private LightToCheck[] m_lightsToCheck;
-    private Light[] m_lights;
+    private HashSet<LightToCheck> m_lightsToChecks;
+    private HashSet<Light> m_lights;
+    private const float DEFAULT_DARK_VALUE = 0.2f;
     private const float MIN_LIGHT_SCORE = 1;
     private float m_lightPow;
     private float m_distancePow;
 
-    public LightVisibilityEvaluator(LightToCheck[] lightToChecks, float lightPow, float distancePow)
+    public LightVisibilityEvaluator(HashSet<LightToCheck> lightToChecks, float lightPow, float distancePow)
     {
-        m_lightsToCheck = lightToChecks;
-        m_lights = new Light[lightToChecks.Length];
-        for (int i = 0; i < lightToChecks.Length; i++)
+        m_lightsToChecks = lightToChecks;
+        foreach(var check in m_lightsToChecks)
         {
-            m_lights[i] = m_lightsToCheck[i].GetComponent<Light>();
+            Light light = check.Light;
+            m_lights.Add(light);
         }
 
         m_lightPow = lightPow;
@@ -38,6 +40,23 @@ public class LightVisibilityEvaluator
         float totalScore = Mathf.Pow((brightness * lightScore), m_lightPow) / Mathf.Pow(distanceScore, m_distancePow);
 
         return totalScore;
+    }
+
+    public float CalkBrightness(HashSet<LightZone> lightZones)
+    {
+        //一つも接触していないとき.
+        if (lightZones.Count == 0)
+            return DEFAULT_DARK_VALUE;
+
+        float max = 0f;
+
+        //複数のLightZone(Collider)に接触した場合最もBrightnessの値が大きいLightZoneのBrightnessを参照する.
+        foreach (var zone in lightZones)
+        {
+            max = Mathf.Max(max, zone.Brightness);
+        }
+
+        return max;
     }
 
     //Lightのrangeの中心に近いほど高いスコアを返す.

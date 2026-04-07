@@ -1,11 +1,10 @@
 using UnityEngine;
-using Unity.Cinemachine;
+
 public class SearchGauge
 {
     private RectTransform m_rotationTarget;
     private Transform m_enemy;
     private Camera m_cam;
-    private Transform m_player;
 
     public SearchGauge (RectTransform target)
     {
@@ -22,12 +21,6 @@ public class SearchGauge
     public float CalcRightFillValue(float score)
     {
         return Mathf.Lerp(10f, 0f, Mathf.InverseLerp(0, 40f, score));
-    }
-
-    public void GetPlayer(Transform player)
-    {
-        if (m_player == null)
-            m_player = player;
     }
 
     private float CalcAngleBetweenEnemyAndCam()

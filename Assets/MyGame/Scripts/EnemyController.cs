@@ -1,5 +1,4 @@
 using System.Collections.Generic;
-using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.AI;
 
@@ -11,13 +10,15 @@ public class PatrolPointData
 }
 
 [RequireComponent(typeof(NavMeshAgent))]
-[RequireComponent(typeof(Animator))]
+
 public class EnemyController : MonoBehaviour
 {
     [SerializeField] private EnemyData m_data;
+    [SerializeField] private float m_lightPow;
+    [SerializeField] private float m_distancePow;
+    [SerializeField] private float m_decSpeed;
     [SerializeField] private PatrolPointData[] m_pointData;
     [SerializeField] private ViewTargetProfile m_viewTargetProfile;
-    [SerializeField] private float m_defDarkValue;
     [SerializeField, Range(0, 99.9999f)] private float m_percentageOfChangeCautionState;
 
     private EnemyStatus m_status;
@@ -25,7 +26,6 @@ public class EnemyController : MonoBehaviour
     private NavMeshAgent m_agent;
     private EnemyMotor m_motor;
     private ViewTarget m_viewTarget;
-    private DiscoveryScore m_disScore;
     private LightVisibilityEvaluator m_lightEvaluator;
     private HashSet<LightZone> m_lightZones = new HashSet<LightZone>();
     private Timer m_timer;
@@ -44,10 +44,9 @@ public class EnemyController : MonoBehaviour
         m_agent = GetComponent<NavMeshAgent>();
 
         m_status = new EnemyStatus(m_data);
-        m_core = new EnemyCore(m_status,this.transform);
+        m_core = new EnemyCore(m_status, this.transform);
         m_motor = new EnemyMotor(m_status, m_agent, m_pointData);
         m_viewTarget = new ViewTarget(m_viewTargetProfile);
-        m_disScore = new DiscoveryScore(MAX_VIEW_SCORE);
         m_timer = new Timer();
 
         m_viewTarget.OverrideValues(m_status.ViewAngle, m_status.ViewDistance);
@@ -60,20 +59,18 @@ public class EnemyController : MonoBehaviour
 
     private void OnEnable()
     {
-        if (GameManager.s_Instance == null)
-            return;
-
-        GameManager.s_Instance.OnPlayerSpawned += OnPlayerSpawned;
-        GameManager.s_Instance.OnCachedLights += OnCachedLights;
+        Registries.Instance.EnemyRegister(this);
     }
 
     private void OnDisable()
     {
-        if (GameManager.s_Instance == null)
-            return;
+        Registries.Instance.EnemyUnRegister(this);
+    }
 
-        GameManager.s_Instance.OnPlayerSpawned -= OnPlayerSpawned;
-        GameManager.s_Instance.OnCachedLights -= OnCachedLights;
+    public void Initialize(HashSet<LightToCheck> checks, PlayerContoller player)
+    {
+        m_lightEvaluator = new LightVisibilityEvaluator(checks, m_lightPow, m_distancePow);
+        m_player = player.transform;
     }
 
     /// =======================================================================
@@ -83,21 +80,30 @@ public class EnemyController : MonoBehaviour
     {
         //プレイヤーの騒音オブジェクトに接触.
         if (m_alertState != AlertState.Caution && other.CompareTag("Noise"))
-        {
-            m_alertState = AlertState.Caution;
-            m_motor.GetTarget(other.gameObject.transform.position);
-        }
+            HandleNoise(other.gameObject.transform.position);
 
         if (other.CompareTag("Player"))
-        {
-            m_alertState = AlertState.Discover;
-        }
+            HandlePlayer();
 
         if (other.TryGetComponent(out LightZone zone))
-        {
-            m_lightZones.Add(zone);
-            CalkBrightness();
-        }
+            HandleLightEnter(zone);
+    }
+
+    void HandleNoise(Vector3 position)
+    {
+        m_alertState = AlertState.Caution;
+        m_motor.GetTarget(position);
+    }
+
+    void HandlePlayer()
+    {
+        m_alertState = AlertState.Discover;
+    }
+
+    void HandleLightEnter(LightZone zone)
+    {
+        m_lightZones.Add(zone);
+        m_brightness = m_lightEvaluator.CalkBrightness(m_lightZones);
     }
 
     private void OnTriggerExit(Collider other)
@@ -105,104 +111,54 @@ public class EnemyController : MonoBehaviour
         if (other.TryGetComponent(out LightZone zone))
         {
             m_lightZones.Remove(zone);
-            CalkBrightness();
+            m_brightness = m_lightEvaluator.CalkBrightness(m_lightZones);
         }
     }
     /// =======================================================================
-    /// ColliderTrigger Finish
-    private void Start()
-    {
-        if (GameManager.s_Instance?.Player != null && m_player == null)
-            OnPlayerSpawned(GameManager.s_Instance.Player.transform);
-
-        if (GameManager.s_Instance?.LightVisibilityEvaluator != null && m_lightEvaluator == null)
-            OnCachedLights(GameManager.s_Instance.LightVisibilityEvaluator);
-    }
-
+    /// ColliderTrigger Finish <summary>
     /// =======================================================================
-    /// Read Event
-    /// =======================================================================
-    void OnPlayerSpawned(Transform player)
-    {
-        m_viewTarget.GetTarget(player);
-        m_player = player;
-    }
-
-    void OnCachedLights(LightVisibilityEvaluator lightEvaluator)
-    {
-        m_lightEvaluator = lightEvaluator;
-    }
-    /// =======================================================================
-    /// Read Event Finish
-
-    //現在地の明るさを取得.
-    void GetCurrentBrightness(float brightness)
-    {
-        m_brightness = brightness;
-    }
-
-    public void CalkBrightness()
-    {
-        //一つも接触していないとき.
-        if (m_lightZones.Count == 0)
-        {
-            //デフォルトの値を渡す.
-            GetCurrentBrightness(m_defDarkValue);
-            return;
-        }
-        float max = 0f;
-
-        //複数のLightZone(Collider)に接触した場合最もBrightnessの値が大きいLightZoneのBrightnessを参照する.
-        foreach (var zone in m_lightZones)
-        {
-            max = Mathf.Max(max, zone.Brightness);
-        }
-
-        GetCurrentBrightness(max);
-    }
-
-    //必要なコンポーネントがnullならセット.
-    void NullCompletion()
-    {
-        if (m_lightEvaluator == null)
-            m_lightEvaluator = GameManager.s_Instance.LightVisibilityEvaluator;
-        if (m_player == null)
-        {
-            m_player = GameManager.s_Instance.Player.transform;
-            m_viewTarget.GetTarget(m_player);
-        }
-    }
 
     void CheckViewingScore()
     {
         if (!m_timer.IsOutOfDuration(CHECK_VIEW_INTERVAL))
             return;
 
-        if (m_viewTarget.IsSeeTarget())
-        {
-            //プレイヤーが見えていたら発見スコア上昇.
-            TotalScore = m_disScore.IncreaceScore(TotalScore, m_lightEvaluator.EaseOfViewingScore(
+        bool isSee = m_viewTarget.IsSeeTarget();
+
+        float viewScore = m_lightEvaluator.EaseOfViewingScore(
                 this.transform.position,
                 m_player.position,
                 m_brightness,
                 m_status.ViewDistance
-                ));
+                );
 
-            Debug.Log(TotalScore);
+        float delta = CalcScore(
+            isSee,
+            viewScore,
+            Time.deltaTime
+            );
+
+        TotalScore += delta;
+        TotalScore = Mathf.Clamp(TotalScore, 0f, MAX_VIEW_SCORE);
+    }
+
+    public float CalcScore(bool isSee, float viewScore, float deltaTime)
+    {
+        if (isSee)
+        {
+            return viewScore * deltaTime;
         }
         else
         {
-            //プレイヤー未発見なら発見スコア減少.
-            TotalScore = m_disScore.DecreaceScore(TotalScore);
+            return -m_decSpeed * deltaTime;
         }
-
-        GameManager.s_Instance.NotifyEnemyScoreChanged(this);
     }
 
     void ChangeAlertStateByScore()
     {
         //発見スコアの最大値に対する割合で警戒状態を変更.
         float scorePercentage = (TotalScore / MAX_VIEW_SCORE);
+
         //プレイヤーを捜索中でないときかつ警戒状態に移行する割合以下.
         if (m_motor.MovingState != EnemyMoveState.Search && scorePercentage < m_percentageOfChangeCautionState)
         {
@@ -239,44 +195,10 @@ public class EnemyController : MonoBehaviour
 
     private void Update()
     {
-        NullCompletion();
         if (m_core.IsDead() == true)
             return;
         CheckViewingScore();
         ChangeAlertStateByScore();
         ChangeBehaviour();
     }
-
-    /*void OnDrawGizmos()
-    {
-        if (m_viewTargetProfile.RayOrigin == null)
-            return;
-
-        Vector3 origin = m_viewTargetProfile.RayOrigin.transform.position;
-        float dist = m_status.ViewDistance;
-        float angle = m_status.ViewAngle;
-
-        int segments = 20;
-
-        Gizmos.color = Color.yellow;
-
-        Vector3 prevPoint = origin;
-
-        for (int i = 0; i <= segments; i++)
-        {
-            float t = (float)i / segments;
-            float currentAngle = -angle * 0.5f + angle * t;
-
-            Vector3 dir = Quaternion.Euler(0, currentAngle, 0) * m_viewTargetProfile.RayOrigin.transform.forward;
-            Vector3 point = origin + dir * dist;
-
-            Gizmos.DrawLine(origin, point);
-
-            if (i > 0)
-                Gizmos.DrawLine(prevPoint, point);
-
-            prevPoint = point;
-        }
-    }
-    */
 }

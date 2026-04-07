@@ -19,15 +19,12 @@ public class ViewTarget
     private float m_distance;
     private LayerMask m_sightMask;
     private string m_targetTagName;
-    private Timer m_timer;
-    private float m_checkInterval;
 
     public ViewTarget(ViewTargetProfile profile)
     {
         m_origin = profile.RayOrigin;
         m_sightMask = profile.Mask;
         m_targetTagName = profile.TargetTagName;
-        m_timer = new Timer();
 
         if (m_distance == 0 || m_angle == 0)
             return;

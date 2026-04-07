@@ -9,8 +9,9 @@ public class UIController : MonoBehaviour
     [SerializeField] private Slider m_sliderRight;
     [SerializeField, Range(0, 100f)] private float m_percentageOfEnableSlider_Max;
     [SerializeField, Range(0, 100f)] private float m_percentageOfEnableSlider_Min;
+    private EnemyController m_highScoreEnemy;
     private SearchGauge m_gauge;
-    private Transform m_camera;
+    private Camera m_camera;
 
     private void Awake()
     {
@@ -21,39 +22,22 @@ public class UIController : MonoBehaviour
             m_percentageOfEnableSlider_Max /= 100f;
         if (m_percentageOfEnableSlider_Min > 0f)
             m_percentageOfEnableSlider_Min /= 100;
+    }
 
-        if (GameManager.s_Instance.MainCamera != null)
-            m_camera = GameManager.s_Instance.MainCamera.transform;
+    public void OnUpdateHighScoreEnemy(EnemyController highScoreEnemy)
+    {
+        m_highScoreEnemy = highScoreEnemy;
     }
 
     void ControlSearchGaugeFillValue()
     {
         //スライダーの増え方が違うため、左右別で計算.
-        m_sliderLeft.value = m_gauge.CalcLeftFillValue(GameManager.s_Instance.HighestScoreEnemy.TotalScore);
-        m_sliderRight.value = m_gauge.CalcRightFillValue(GameManager.s_Instance.HighestScoreEnemy.TotalScore);
-    }
-
-    private bool IsReferenceNull()
-    {
-        if (m_camera == null)
-            m_camera = GameManager.s_Instance.MainCamera.transform;
-
-        if (GameManager.s_Instance.Player != null)
-            m_gauge.GetPlayer(GameManager.s_Instance.Player.transform);
-
-        return GameManager.s_Instance.HighestScoreEnemy == null || GameManager.s_Instance.Player == null;
-    }
-
-    private void Update()
-    {
-        if (IsReferenceNull())
-            return;
-
-        ControlSearchGaugeFillValue();
+        m_sliderLeft.value = m_gauge.CalcLeftFillValue(m_highScoreEnemy.TotalScore);
+        m_sliderRight.value = m_gauge.CalcRightFillValue(m_highScoreEnemy.TotalScore);
         m_gauge.TurnToEnemy(
-            GameManager.s_Instance.HighestScoreEnemy.transform,
-            GameManager.s_Instance.MainCamera
-            );
+                   m_highScoreEnemy.transform,
+                   m_camera
+                   );
 
         //スライダーのValueが閾値におさまっている間はスライダーを表示する.
         float leftPercentage = m_sliderLeft.value / m_sliderLeft.maxValue;
@@ -65,5 +49,13 @@ public class UIController : MonoBehaviour
             m_sliders.SetActive(false);
         else
             m_sliders.SetActive(true);
+    }
+
+    private void Update()
+    {
+        if (m_camera == null || m_highScoreEnemy == null)
+            return;
+
+        ControlSearchGaugeFillValue();
     }
 }

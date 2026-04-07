@@ -37,7 +37,6 @@ public class EnemyMotor
     {
         if (m_lastTargetPos == Vector3.zero)
         {
-            MovingState = EnemyMoveState.Chase;
             m_lastTargetPos = targetPos;
             GoToDestination(m_lastTargetPos);
         }

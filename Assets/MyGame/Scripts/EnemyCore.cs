@@ -29,5 +29,10 @@ public class EnemyCore : IDamageable,IAssassinateable
 
     }
 
+    public void Assasinate()
+    {
+
+    }
+
     public bool IsDead() { return m_status.Hp < 0; }
 }
