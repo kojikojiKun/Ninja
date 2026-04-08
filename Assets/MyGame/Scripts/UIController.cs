@@ -24,6 +24,11 @@ public class UIController : MonoBehaviour
             m_percentageOfEnableSlider_Min /= 100;
     }
 
+    public void Initialize(Camera camera)
+    {
+        m_camera = camera;
+    }
+
     public void OnUpdateHighScoreEnemy(EnemyController highScoreEnemy)
     {
         m_highScoreEnemy = highScoreEnemy;

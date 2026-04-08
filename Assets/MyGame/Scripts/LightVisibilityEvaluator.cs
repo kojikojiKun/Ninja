@@ -4,17 +4,17 @@ using UnityEngine;
 public class LightVisibilityEvaluator
 {
     private LayerMask m_shadowBlock;
-    private HashSet<LightToCheck> m_lightsToChecks;
-    private HashSet<Light> m_lights;
+    private List<LightToCheck> m_lightsToChecks = new List<LightToCheck>();
+    private List<Light> m_lights = new List<Light>();
     private const float DEFAULT_DARK_VALUE = 0.2f;
     private const float MIN_LIGHT_SCORE = 1;
     private float m_lightPow;
     private float m_distancePow;
 
-    public LightVisibilityEvaluator(HashSet<LightToCheck> lightToChecks, float lightPow, float distancePow)
+    public void GetLights(List<LightToCheck> lightToChecks, float lightPow, float distancePow)
     {
         m_lightsToChecks = lightToChecks;
-        foreach(var check in m_lightsToChecks)
+        foreach (var check in m_lightsToChecks)
         {
             Light light = check.Light;
             m_lights.Add(light);
@@ -42,7 +42,7 @@ public class LightVisibilityEvaluator
         return totalScore;
     }
 
-    public float CalkBrightness(HashSet<LightZone> lightZones)
+    public float CalkBrightness(List<LightZone> lightZones)
     {
         //àÍÇ¬Ç‡ê⁄êGÇµÇƒÇ¢Ç»Ç¢Ç∆Ç´.
         if (lightZones.Count == 0)

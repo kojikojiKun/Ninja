@@ -3,15 +3,10 @@ using UnityEngine;
 [RequireComponent (typeof(Light))]
 public class LightToCheck : MonoBehaviour
 {
-    public Light Light{get; private set;}
+    public Light Light { get; private set; }
 
-    private void OnEnable()
+    private void Awake()
     {
-        Registries.Instance.LightRegister(this);
-    }
-
-    private void OnDisable()
-    {
-        Registries.Instance.LightUnRegister(this);
+        Light = GetComponent<Light>();
     }
 }

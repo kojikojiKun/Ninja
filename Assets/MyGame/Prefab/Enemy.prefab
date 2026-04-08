@@ -303,6 +303,9 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::NewEnemyController
   m_data: {fileID: 11400000, guid: a95de64d511737744999bb80646d34f8, type: 2}
+  m_lightPow: 0.2
+  m_distancePow: 0.5
+  m_decSpeed: 30
   m_pointData: []
   m_viewTargetProfile:
     RayOrigin: {fileID: 2849700565593398188}
@@ -310,10 +313,8 @@ MonoBehaviour:
       serializedVersion: 2
       m_Bits: 768
     TargetTagName: Player
-    CheckInterval: 0.2
     Angle: 0
     Distanece: 0
-  m_defDarkValue: 0.2
   m_percentageOfChangeCautionState: 35
 --- !u!95 &8910247256635375342
 Animator:

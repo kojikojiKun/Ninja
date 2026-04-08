@@ -182,7 +182,29 @@ public class PlayerMotor : IControllable
         m_controller.Move(m_horizonal + FreeFall());
     }
 
-    public void SetTargetSpeed(float speed) { m_targetSpeed = speed; }
+    public void SetTargetSpeed(float speed)
+    {
+        bool isRunPressed = m_input.IsRunPressed;
+        if (isRunPressed)
+        {
+            m_isStartCrouch = false;
+            m_targetSpeed = m_status.RunSpeed;
+        }
+        else if (m_isStartCrouch)
+        {
+            m_targetSpeed = m_status.CrouchWalkSpeed;
+        }
+        else if (!isRunPressed && !m_isStartCrouch)
+        {
+            m_targetSpeed = m_status.WalkSpeed;
+        }
+
+        if (m_targetSpeed != m_prevTargetSpeed)
+        {
+            m_motor.SetTargetSpeed(m_targetSpeed);
+            m_prevTargetSpeed = m_targetSpeed;
+        }
+    }
 
     public void Jump() { m_velocity_Y = m_status.JumpForce; }
 

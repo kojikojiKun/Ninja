@@ -2,7 +2,7 @@ using UnityEngine;
 using System.Collections.Generic;
 
 [RequireComponent(typeof(CharacterController))]
-public class PlayerContoller : MonoBehaviour
+public class PlayerController : MonoBehaviour
 {
     [SerializeField] private PlayableEntityData m_data;
     [SerializeField] private ViewTargetProfile m_viewProfile;
@@ -22,6 +22,7 @@ public class PlayerContoller : MonoBehaviour
     private PlayerAnimation m_playerAnimation;
     private ViewTarget m_viewTarget;
     private AssassinationRange m_asRange;
+    private IAssassinateable m_closest;
 
     private PlayerMoveState m_currentMoveState;
     private float m_targetSpeed;
@@ -34,7 +35,7 @@ public class PlayerContoller : MonoBehaviour
         m_soundRangeController = GetComponent<SoundRangeController>();
         m_input = GetComponent<ReadPlayerInput>();
         m_animator = GetComponent<Animator>();
-        m_asRange = GetComponent<AssassinationRange>();
+        m_asRange = GetComponentInChildren<AssassinationRange>();
 
         m_status = new PlayableEntityStatus(m_data);
         m_core = new PlayerCore(m_status);
@@ -78,31 +79,6 @@ public class PlayerContoller : MonoBehaviour
     void HandleAttack()
     {
         m_motor.Attack();
-
-    }
-
-    void GiveSpeedToMotor()
-    {
-        bool isRunPressed = m_input.IsRunPressed;
-        if (isRunPressed)
-        {
-            m_isStartCrouch = false;
-            m_targetSpeed = m_status.RunSpeed;
-        }
-        else if (m_isStartCrouch)
-        {
-            m_targetSpeed = m_status.CrouchWalkSpeed;
-        }
-        else if (!isRunPressed && !m_isStartCrouch)
-        {
-            m_targetSpeed = m_status.WalkSpeed;
-        }
-
-        if (m_targetSpeed != m_prevTargetSpeed)
-        {
-            m_motor.SetTargetSpeed(m_targetSpeed);
-            m_prevTargetSpeed = m_targetSpeed;
-        }
     }
 
     private void Update()

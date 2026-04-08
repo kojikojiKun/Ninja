@@ -3,14 +3,8 @@ using System.Collections.Generic;
 
 public class Registries : MonoBehaviour
 {
-    public static Registries Instance { get; private set; }
-    public HashSet<EnemyController> Enemies { get; private set; } = new HashSet<EnemyController>();
-    public HashSet<LightToCheck> Lights { get; private set; } = new HashSet<LightToCheck>();
-
-    private void Awake()
-    {
-        Instance = this;
-    }
+    public List<EnemyController> Enemies { get; private set; } = new List<EnemyController>();
+    public List<LightToCheck> Lights { get; private set; } = new List<LightToCheck>();
 
     public void EnemyRegister(EnemyController enemy)
     {

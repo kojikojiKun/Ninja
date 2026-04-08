@@ -12,7 +12,7 @@ public class DiscoveryScoreManager : MonoBehaviour
         if (m_highScoreEnemy == null || enemy.TotalScore > m_highScoreEnemy.TotalScore)
         {
             m_highScoreEnemy = enemy;
-            OnUpdateHighScoreEnemy.Invoke(enemy);
+            OnUpdateHighScoreEnemy?.Invoke(enemy);
         }
     }
 }

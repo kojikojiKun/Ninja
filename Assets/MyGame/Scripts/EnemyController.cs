@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System;
 using UnityEngine;
 using UnityEngine.AI;
 
@@ -27,16 +28,17 @@ public class EnemyController : MonoBehaviour
     private EnemyMotor m_motor;
     private ViewTarget m_viewTarget;
     private LightVisibilityEvaluator m_lightEvaluator;
-    private HashSet<LightZone> m_lightZones = new HashSet<LightZone>();
+    private List<LightZone> m_lightZones = new List<LightZone>();
     private Timer m_timer;
 
     private AlertState m_alertState;
-    private Transform m_player;
+    private PlayerController m_player;
     private float m_brightness;
     private const float MAX_VIEW_SCORE = 40f;
     private const float CHECK_VIEW_INTERVAL = 0.2f;
 
     public float TotalScore { get; private set; }
+    public event Action<EnemyController> OnScoreChanged;
 
 
     private void Awake()
@@ -47,6 +49,7 @@ public class EnemyController : MonoBehaviour
         m_core = new EnemyCore(m_status, this.transform);
         m_motor = new EnemyMotor(m_status, m_agent, m_pointData);
         m_viewTarget = new ViewTarget(m_viewTargetProfile);
+        m_lightEvaluator = new LightVisibilityEvaluator();
         m_timer = new Timer();
 
         m_viewTarget.OverrideValues(m_status.ViewAngle, m_status.ViewDistance);
@@ -57,20 +60,11 @@ public class EnemyController : MonoBehaviour
         m_timer.Reset();
     }
 
-    private void OnEnable()
+    public void Initialize(List<LightToCheck> checks, PlayerController player)
     {
-        Registries.Instance.EnemyRegister(this);
-    }
-
-    private void OnDisable()
-    {
-        Registries.Instance.EnemyUnRegister(this);
-    }
-
-    public void Initialize(HashSet<LightToCheck> checks, PlayerContoller player)
-    {
-        m_lightEvaluator = new LightVisibilityEvaluator(checks, m_lightPow, m_distancePow);
-        m_player = player.transform;
+        m_player = player;
+        m_lightEvaluator.GetLights(checks, m_lightPow, m_distancePow);
+        m_viewTarget.GetTarget(m_player.transform);
     }
 
     /// =======================================================================
@@ -120,6 +114,10 @@ public class EnemyController : MonoBehaviour
 
     void CheckViewingScore()
     {
+        if (m_player == null)
+            return;
+
+
         if (!m_timer.IsOutOfDuration(CHECK_VIEW_INTERVAL))
             return;
 
@@ -127,7 +125,7 @@ public class EnemyController : MonoBehaviour
 
         float viewScore = m_lightEvaluator.EaseOfViewingScore(
                 this.transform.position,
-                m_player.position,
+                m_player.gameObject.transform.position,
                 m_brightness,
                 m_status.ViewDistance
                 );
@@ -137,9 +135,11 @@ public class EnemyController : MonoBehaviour
             viewScore,
             Time.deltaTime
             );
-
+        Debug.Log($"{isSee}..{viewScore}..{delta}");
         TotalScore += delta;
         TotalScore = Mathf.Clamp(TotalScore, 0f, MAX_VIEW_SCORE);
+
+        OnScoreChanged?.Invoke(this);
     }
 
     public float CalcScore(bool isSee, float viewScore, float deltaTime)
@@ -167,7 +167,7 @@ public class EnemyController : MonoBehaviour
         //Œx‰úó‘Ô‚ÉˆÚs‚·‚éŠ„‡ˆÈã100“ˆÈ‰º.
         else if (scorePercentage >= m_percentageOfChangeCautionState && scorePercentage < 1f)
         {
-            m_motor.GetTarget(m_player.position);
+            m_motor.GetTarget(m_player.gameObject.transform.position);
             m_alertState = AlertState.Caution;
         }
         //100%.
