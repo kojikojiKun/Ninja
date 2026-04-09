@@ -7,7 +7,7 @@ public enum PlayerMoveState
     CrouchIdle
 }
 
-public class PlayerCore : IDamageable
+public class PlayerCore
 {
     private PlayableEntityStatus m_status;
 

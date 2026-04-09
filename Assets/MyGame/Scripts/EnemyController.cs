@@ -12,7 +12,7 @@ public class PatrolPointData
 
 [RequireComponent(typeof(NavMeshAgent))]
 
-public class EnemyController : MonoBehaviour,IAssassinateable,IDamageable
+public class EnemyController : MonoBehaviour, IAssassinateable, IDamageable
 {
     [SerializeField] private EnemyData m_data;
     [SerializeField] private float m_lightPow;
@@ -138,6 +138,7 @@ public class EnemyController : MonoBehaviour,IAssassinateable,IDamageable
             viewScore,
             Time.deltaTime
             );
+
         Debug.Log($"{isSee}..{viewScore}..{delta}");
         m_totalScore += delta;
         m_totalScore = Mathf.Clamp(m_totalScore, 0f, MAX_VIEW_SCORE);
@@ -200,15 +201,14 @@ public class EnemyController : MonoBehaviour,IAssassinateable,IDamageable
                 break;
         }
     }
-
-    public void BeAssasinate()
-    {
-
-    }
-
     public void TakeDamage(int value)
     {
         m_core.TakeDamage(value);
+    }
+
+    public void BeAssassinate()
+    {
+
     }
 
     private void Update()

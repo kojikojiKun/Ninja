@@ -1,5 +1,5 @@
 using UnityEngine;
-public class PlayerMotor : IControllable
+public class PlayerMotor
 {
     private PlayableEntityStatus m_status;
     private CharacterController m_characterController;
@@ -182,17 +182,12 @@ public class PlayerMotor : IControllable
 
     public void Jump()
     {
-        if (m_characterController.isGrounded == true)
+        if (CanJamp())
             m_velocity_Y = m_status.JumpForce;
     }
 
-    public void Attack()
+    bool CanJamp()
     {
-
-    }
-
-    public void Assassinate()
-    {
-
+        return m_characterController.isGrounded;
     }
 }
