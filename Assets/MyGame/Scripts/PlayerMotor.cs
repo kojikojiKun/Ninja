@@ -2,150 +2,86 @@ using UnityEngine;
 public class PlayerMotor : IControllable
 {
     private PlayableEntityStatus m_status;
-    private CharacterController m_controller;
-    private Timer m_holdTimer;
-    private Timer m_turnTimer;
+    private CharacterController m_characterController;
+    private Transform m_cameraPos;
+    private PlayerMoveState m_currentState;
+    private bool m_isCrouching;
 
-    private Vector2 m_input;
-    private Vector2 m_lastInput;
-    private Vector3 m_lastHorizonal;
     private Vector3 m_horizonal;
-    private float m_timeToHold;
-    private float m_turnDuration;
-    private float m_targetSpeed;  
+    private float m_targetSpeed;
     private const float GRAVITY = -9.81f;
     private float m_velocity_Y = 0f;
-
-    public bool IsStartTurn { get; private set; }
-    public float CurrentSpeed { get; private set; }
+    private float m_currentSpeed;
 
     public PlayerMotor(PlayableEntityStatus status, CharacterController controller)
     {
         m_status = status;
-        m_controller = controller;
-        m_holdTimer = new Timer();
-        m_turnTimer = new Timer();
-
-        m_holdTimer.Reset();
-        m_turnTimer.Reset();
+        m_characterController = controller;
     }
 
-    public void SetFloat(float hold, float Duration)
+    public void SetCamera(Transform camera)
     {
-        m_timeToHold = hold;
-        m_turnDuration = Duration;
+        m_cameraPos = camera;
     }
 
     public float SpeedRatio()
     {
-        float ratio = CurrentSpeed / m_targetSpeed;
+        float ratio = m_currentSpeed / m_targetSpeed;
         if (ratio > 1)
             ratio = 1;
         return ratio;
     }
 
-    //入力状況から移動状態を返す.
-    public PlayerMoveState CurrentState(bool isRunPressed, bool isStartCrouching)
-    {
-        PlayerMoveState state = new PlayerMoveState();
-        float inputValue = m_input.magnitude;
-        if (inputValue > 0f && isRunPressed)
-        {
-            state = PlayerMoveState.Run;
-        }
-        else if (inputValue > 0f && isStartCrouching)
-        {
-            state = PlayerMoveState.Crouch;
-        }
-        else if(inputValue>0f && !isRunPressed && !isStartCrouching)
-        {
-            state = PlayerMoveState.Walk;
-        }
-        else if (inputValue == 0f && isStartCrouching)
-        {
-            state = PlayerMoveState.CrouchIdle;
-        }
-        else
-        {
-            state = PlayerMoveState.Idle;
-        }
-
-        return state;
-    }
-
-    //変数を保持.
-    public void Hold()
-    {
-        //スピードが目標の値まで達していて、入力ベクトルが保持しているベクトルに対して逆方向になったとき.
-        if (CurrentSpeed == m_targetSpeed && Vector2.Dot(m_input, m_lastInput) < 0f)
-        {
-            //ターンの検知は入力値基準.
-            IsStartTurn = true;
-        }
-
-        if (IsStartTurn)
-        {
-            if (m_turnTimer.IsOutOfDuration(m_turnDuration))
-            {
-                IsStartTurn = false;
-                m_turnTimer.Reset();
-            }
-        }
-
-        //timeToHold秒前の入力ベクトル,移動方向を保持.
-        if (m_holdTimer.IsOutOfDuration(m_timeToHold))
-        {
-            m_lastInput = m_input;
-            m_lastHorizonal = m_horizonal;
-            m_holdTimer.Reset();
-        }
-    }
-
     public void Acceleration()
     {
-        CurrentSpeed = Mathf.Lerp(
-            CurrentSpeed,
+        m_currentSpeed = Mathf.Lerp(
+            m_currentSpeed,
             m_targetSpeed,
             (1 - Mathf.Exp(-m_status.SharpnessToTargetSpeed * Time.deltaTime))
             );
 
-        if (m_targetSpeed - CurrentSpeed <= 0.1f)
-            CurrentSpeed = m_targetSpeed;
+        if (m_targetSpeed - m_currentSpeed <= 0.1f)
+            m_currentSpeed = m_targetSpeed;
     }
 
     public void Deceleraiton()
     {
-        float diff = CurrentSpeed;
+        float diff = m_currentSpeed;
 
         float decel = diff / 0.5f;
 
-        CurrentSpeed = Mathf.Lerp(
-            CurrentSpeed,
+        m_currentSpeed = Mathf.Lerp(
+            m_currentSpeed,
             0f,
             decel * Time.deltaTime
             );
 
-        if (CurrentSpeed <= 0.5f)
-            CurrentSpeed = 0;
+        if (m_currentSpeed <= 0.5f)
+            m_currentSpeed = 0;
+    }
+
+    public float GetCurrentSpeed()
+    {
+        return m_currentSpeed;
     }
 
     void Rotate(Vector3 dir)
     {
         //徐々に正面に向ける.
         Vector3 desierdForward = Vector3.RotateTowards(
-            m_controller.transform.forward,
+            m_characterController.transform.forward,
             dir,
             m_status.TurnSpeed * Time.deltaTime,
             0f
             );
 
         if (desierdForward.sqrMagnitude > 0.01f)
-            m_controller.transform.rotation = Quaternion.LookRotation(desierdForward);
+            m_characterController.transform.rotation = Quaternion.LookRotation(desierdForward);
     }
 
     Vector3 FreeFall()
     {
-        if (m_controller.isGrounded && m_velocity_Y < 0)
+        if (m_characterController.isGrounded && m_velocity_Y < 0)
             m_velocity_Y = -2f;
 
         m_velocity_Y += GRAVITY * Time.deltaTime;
@@ -153,62 +89,109 @@ public class PlayerMotor : IControllable
         return Vector3.up * m_velocity_Y * Time.deltaTime;
     }
 
-    public void Move(Vector2 input, Transform cam)
+    Vector3 CalcDirection(Vector2 input)
     {
         //カメラを基準にプレイヤーを移動.
-        m_input = input;
-        Vector3 forward = cam.forward;
-        Vector3 right = cam.right;
+        Vector3 forward = m_cameraPos.forward;
+        Vector3 right = m_cameraPos.right;
         forward.y = 0f;
         right.y = 0f;
 
         forward.Normalize();
         right.Normalize();
 
-        Vector3 dir = forward * m_input.y + right * m_input.x;
+        Vector3 dir = forward * input.y + right * input.x;
+        return dir;
+    }
+
+    public void Move(Vector2 input)
+    {
+        Vector3 dir = CalcDirection(input);
 
         if (dir.sqrMagnitude > 1)
             dir.Normalize();
 
         if (dir.sqrMagnitude > 0.01f)
+        {
             Rotate(dir);
+            Acceleration();
+        }
+        else
+        {
+            Deceleraiton();
+        }
 
         //移動ベクトル計算.
-        m_horizonal = dir * CurrentSpeed * Time.deltaTime;
+        m_horizonal = dir * m_currentSpeed * Time.deltaTime;
 
-        if (IsStartTurn)
-            m_horizonal = m_lastHorizonal;
-
-        m_controller.Move(m_horizonal + FreeFall());
+        m_characterController.Move(m_horizonal + FreeFall());
     }
 
-    public void SetTargetSpeed(float speed)
+    public void ToggleCrouch()
     {
-        bool isRunPressed = m_input.IsRunPressed;
-        if (isRunPressed)
+        m_isCrouching = !m_isCrouching;
+    }
+
+    public void SetState(Vector2 input, bool IsRunPressing)
+    {
+        if (IsRunPressing && m_isCrouching)
+            m_isCrouching = false;
+
+        if (input.sqrMagnitude < 0.1f)
         {
-            m_isStartCrouch = false;
-            m_targetSpeed = m_status.RunSpeed;
+            m_currentState = m_isCrouching
+                ? PlayerMoveState.CrouchIdle
+                : PlayerMoveState.Idle;
         }
-        else if (m_isStartCrouch)
+        else if (IsRunPressing)
         {
-            m_targetSpeed = m_status.CrouchWalkSpeed;
+            m_currentState = PlayerMoveState.Run;
         }
-        else if (!isRunPressed && !m_isStartCrouch)
+        else
         {
-            m_targetSpeed = m_status.WalkSpeed;
+            m_currentState = m_isCrouching
+                ? PlayerMoveState.CrouchWalk
+                : PlayerMoveState.Walk;
         }
 
-        if (m_targetSpeed != m_prevTargetSpeed)
+        SetTargetSpeed();
+    }
+
+    public PlayerMoveState GetState()
+    {
+        return m_currentState;
+    }
+
+    public void SetTargetSpeed()
+    {
+        switch (m_currentState)
         {
-            m_motor.SetTargetSpeed(m_targetSpeed);
-            m_prevTargetSpeed = m_targetSpeed;
+            case PlayerMoveState.Walk:
+                m_targetSpeed = m_status.WalkSpeed;
+                break;
+            case PlayerMoveState.Run:
+                m_targetSpeed = m_status.RunSpeed;
+                break;
+            case PlayerMoveState.CrouchWalk:
+                m_targetSpeed = m_status.CrouchWalkSpeed;
+                break;
+            default:
+                break;
         }
     }
 
-    public void Jump() { m_velocity_Y = m_status.JumpForce; }
+    public void Jump()
+    {
+        if (m_characterController.isGrounded == true)
+            m_velocity_Y = m_status.JumpForce;
+    }
 
     public void Attack()
+    {
+
+    }
+
+    public void Assassinate()
     {
 
     }

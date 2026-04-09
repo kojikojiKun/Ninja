@@ -1,4 +1,3 @@
-using UnityEngine;
 public enum AlertState
 {
     Normal,
@@ -13,25 +12,24 @@ public enum EnemyMoveState
     Chase
 }
 
-public class EnemyCore : IDamageable,IAssassinateable
+public class EnemyCore
 {
     private EnemyStatus m_status;
-    public Transform Transform { get; }
 
-    public EnemyCore(EnemyStatus status,Transform transform)
+    public EnemyCore(EnemyStatus status)
     {
         m_status = status;
-        Transform = transform;
     }
 
     public void TakeDamage(int value)
     {
+        if (IsDead())
+            return;
 
-    }
+        m_status.Hp -= value;
 
-    public void Assasinate()
-    {
-
+        if (m_status.Hp < 0)
+            m_status.Hp = 0;
     }
 
     public bool IsDead() { return m_status.Hp < 0; }

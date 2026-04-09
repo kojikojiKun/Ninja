@@ -13,7 +13,7 @@ public class EnemyMotor
     private float m_waitTime;
     private Timer m_patrolTimer;
     private Timer m_searchTimer;
-    public EnemyMoveState MovingState { get; private set; }
+    private EnemyMoveState m_movingState;
 
     public EnemyMotor(EnemyStatus status,NavMeshAgent agent,PatrolPointData[] pointData)
     {
@@ -79,12 +79,17 @@ public class EnemyMotor
         m_waitTime = m_waitTimes[m_currentPointIndex];
     }
 
+    public EnemyMoveState GetMoveState()
+    {
+        return m_movingState;
+    }
+
     public void Patrol()
     {
         if (!HasArrival())
             return;
 
-        MovingState = EnemyMoveState.Patrol;
+        m_movingState = EnemyMoveState.Patrol;
 
         if (m_patrolTimer.IsOutOfDuration(m_waitTime))
             SetNextPoint();
@@ -98,13 +103,13 @@ public class EnemyMotor
         if (m_searchTimer.IsOutOfDuration(m_status.SearchTime))
         {
             m_lastTargetPos = Vector3.zero;
-            MovingState = EnemyMoveState.Patrol;
+            m_movingState = EnemyMoveState.Patrol;
             m_searchTimer.Reset();
         }
     }
 
     public void Chase()
     {
-        MovingState = EnemyMoveState.Chase;
+        m_movingState = EnemyMoveState.Chase;
     }
 }

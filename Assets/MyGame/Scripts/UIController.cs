@@ -37,8 +37,8 @@ public class UIController : MonoBehaviour
     void ControlSearchGaugeFillValue()
     {
         //スライダーの増え方が違うため、左右別で計算.
-        m_sliderLeft.value = m_gauge.CalcLeftFillValue(m_highScoreEnemy.TotalScore);
-        m_sliderRight.value = m_gauge.CalcRightFillValue(m_highScoreEnemy.TotalScore);
+        m_sliderLeft.value = m_gauge.CalcLeftFillValue(m_highScoreEnemy.GetTotalScore());
+        m_sliderRight.value = m_gauge.CalcRightFillValue(m_highScoreEnemy.GetTotalScore());
         m_gauge.TurnToEnemy(
                    m_highScoreEnemy.transform,
                    m_camera

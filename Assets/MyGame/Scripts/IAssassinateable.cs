@@ -2,7 +2,7 @@ using UnityEngine;
 
 public interface IAssassinateable
 {
-    Transform Transform { get; }
+    Transform OriginTransform { get;}
 
-    void Assasinate() { }
+    void BeAssasinate() { }
 }

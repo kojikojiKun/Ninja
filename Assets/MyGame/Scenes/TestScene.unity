@@ -178,7 +178,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!224 &111327236
 RectTransform:
   m_ObjectHideFlags: 0
@@ -1190,7 +1190,7 @@ RectTransform:
   m_Father: {fileID: 927179621}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
-  m_AnchorMax: {x: 0, y: 0}
+  m_AnchorMax: {x: 1, y: 1}
   m_AnchoredPosition: {x: 52.79001, y: 9.23}
   m_SizeDelta: {x: -105.56, y: 92.79}
   m_Pivot: {x: 0.5, y: 0.5}
@@ -2165,7 +2165,7 @@ BoxCollider:
     serializedVersion: 2
     m_Bits: 0
   m_LayerOverridePriority: 0
-  m_IsTrigger: 0
+  m_IsTrigger: 1
   m_ProvidesContacts: 0
   m_Enabled: 1
   serializedVersion: 3
@@ -2490,7 +2490,7 @@ RectTransform:
   m_Father: {fileID: 434051209}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
-  m_AnchorMax: {x: 0, y: 0}
+  m_AnchorMax: {x: 0, y: 1}
   m_AnchoredPosition: {x: -52.79001, y: 9.23}
   m_SizeDelta: {x: -105.56, y: 92.79}
   m_Pivot: {x: 0.5, y: 0.5}
@@ -3240,12 +3240,8 @@ MonoBehaviour:
       serializedVersion: 2
       m_Bits: 1536
     TargetTagName: Enemy
-    Angle: 0
-    Distanece: 0
-  m_timeToHoldDirection: 0
-  m_turnDuration: 0.2
-  m_inputReceptionTime: 0.5
-  m_inputIgnoreTime: 0.1
+    Angle: 60
+    Distanece: 20
 --- !u!114 &8487630087102206722
 MonoBehaviour:
   m_ObjectHideFlags: 0

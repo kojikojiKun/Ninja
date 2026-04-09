@@ -31,9 +31,9 @@ public class GameManager : MonoBehaviour
 
     private void Start()
     {
-        m_initializer.Initialize(m_uiController,m_registries.Enemies, m_registries.Lights);
+        m_initializer.Initialize(m_uiController,m_registries.GetEnemies(), m_registries.GetLights());
 
-        foreach(var enemy in m_registries.Enemies)
+        foreach(var enemy in m_registries.GetEnemies())
         {
             enemy.OnScoreChanged += m_discoveryScoreManager.NotifyEnemyScoreChanged;
         }

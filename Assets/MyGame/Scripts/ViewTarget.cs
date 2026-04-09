@@ -33,7 +33,7 @@ public class ViewTarget
         m_distance = profile.Distanece;
     }
 
-    public void GetTarget(Transform target)
+    public void SetTarget(Transform target)
     {
         m_target = target;
     }

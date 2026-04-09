@@ -1,14 +1,13 @@
-using UnityEngine;
 public enum PlayerMoveState
 {
     Idle,
     Walk,
     Run,
-    Crouch,
+    CrouchWalk,
     CrouchIdle
 }
 
-public class PlayerCore :IDamageable
+public class PlayerCore : IDamageable
 {
     private PlayableEntityStatus m_status;
 
@@ -19,8 +18,14 @@ public class PlayerCore :IDamageable
 
     public void TakeDamage(int value)
     {
+        if (IsDead())
+            return;
 
+        m_status.Hp -= value;
+
+        if (m_status.Hp < 0)
+            m_status.Hp = 0;
     }
 
-    public bool IsDead() { return m_status.Hp < 0; }
+    public bool IsDead() { return m_status.Hp <= 0; }
 }

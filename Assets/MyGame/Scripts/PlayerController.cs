@@ -2,14 +2,10 @@ using UnityEngine;
 using System.Collections.Generic;
 
 [RequireComponent(typeof(CharacterController))]
-public class PlayerController : MonoBehaviour
+public class PlayerController : MonoBehaviour,IDamageable
 {
     [SerializeField] private PlayableEntityData m_data;
     [SerializeField] private ViewTargetProfile m_viewProfile;
-    [SerializeField] private float m_timeToHoldDirection;
-    [SerializeField] private float m_turnDuration;
-    [SerializeField] private float m_inputReceptionTime;
-    [SerializeField] private float m_inputIgnoreTime;
 
     private Camera m_camera;
     private CharacterController m_characterController;
@@ -21,13 +17,10 @@ public class PlayerController : MonoBehaviour
     private Animator m_animator;
     private PlayerAnimation m_playerAnimation;
     private ViewTarget m_viewTarget;
-    private AssassinationRange m_asRange;
-    private IAssassinateable m_closest;
+    private AssassinationRange m_assasinateRange;
 
     private PlayerMoveState m_currentMoveState;
-    private float m_targetSpeed;
-    private float m_prevTargetSpeed;
-    private bool m_isStartCrouch;
+    private bool m_isRunPressing;
 
     private void Awake()
     {
@@ -35,50 +28,78 @@ public class PlayerController : MonoBehaviour
         m_soundRangeController = GetComponent<SoundRangeController>();
         m_input = GetComponent<ReadPlayerInput>();
         m_animator = GetComponent<Animator>();
-        m_asRange = GetComponentInChildren<AssassinationRange>();
+        m_assasinateRange = GetComponentInChildren<AssassinationRange>();
 
+        m_viewTarget = new ViewTarget(m_viewProfile);
         m_status = new PlayableEntityStatus(m_data);
         m_core = new PlayerCore(m_status);
         m_motor = new PlayerMotor(m_status, m_characterController);
         m_viewTarget = new ViewTarget(m_viewProfile);
-
-        m_motor.SetFloat(m_timeToHoldDirection, m_turnDuration);
         m_playerAnimation = new PlayerAnimation(m_animator);
+
+        
     }
 
     public void Initialize(Camera camera)
     {
         m_camera = camera;
+        m_motor.SetCamera(camera.transform);
+        m_assasinateRange.SetPlayerPos(this.transform);
     }
 
     private void OnEnable()
     {
         m_input.OnJumpPressed += HandleJump;
+        m_input.OnRunPressing += HandleRun;
         m_input.OnCrouchPressed += HandleCrouch;
         m_input.OnAttackPressed += HandleAttack;
+        m_input.OnAssassinated += HandleAssassinate;
     }
 
     private void OnDisable()
     {
         m_input.OnJumpPressed -= HandleJump;
+        m_input.OnRunPressing -= HandleRun;
         m_input.OnCrouchPressed -= HandleCrouch;
         m_input.OnAttackPressed -= HandleAttack;
+        m_input.OnAssassinated -= HandleAssassinate;
     }
 
-    void HandleJump()
+    void HandleRun(bool pressing)
     {
-        if (m_characterController.isGrounded == true)
-            m_motor.Jump();
+        m_isRunPressing = pressing;
     }
 
     void HandleCrouch()
     {
-        m_isStartCrouch = !m_isStartCrouch;
+        m_motor.ToggleCrouch();
+    }
+
+    void HandleJump()
+    {
+        m_motor.Jump();
     }
 
     void HandleAttack()
     {
-        m_motor.Attack();
+        
+    }
+
+    void HandleAssassinate()
+    {
+        IAssassinateable closest = m_assasinateRange.GetClosest();
+
+        if (closest == null)
+            return;
+
+        m_viewTarget.SetTarget(closest.OriginTransform);
+
+        m_motor.Assassinate();
+    }
+
+    public void TakeDamage(int value)
+    {
+        m_core.TakeDamage(value);
     }
 
     private void Update()
@@ -86,27 +107,18 @@ public class PlayerController : MonoBehaviour
         if (m_core.IsDead() == true || m_camera == null)
             return;
 
-        m_soundRangeController.ApplyNoiseRange(m_currentMoveState);
-        m_currentMoveState = m_motor.CurrentState(m_input.IsRunPressed, m_isStartCrouch);
-        GiveSpeedToMotor();
-
-        m_motor.Hold();
-        m_motor.Move(m_input.MoveInput, m_camera.transform);
-
-        bool isMoving = m_input.MoveInput.sqrMagnitude > 0.01f;
-        if (isMoving)
-        {
-            m_motor.Acceleration();
-        }
-        else if(!isMoving || m_motor.IsStartTurn)
-        {
-            m_motor.Deceleraiton();
-        }
+        m_currentMoveState = m_motor.GetState();
+        m_motor.SetState(m_input.GetMoveInput(), m_isRunPressing);
+        m_soundRangeController.ApplyNoiseRange(m_currentMoveState);       
+        m_motor.Move(m_input.GetMoveInput());
     }
 
     private void LateUpdate()
     {
-        if (m_input.MoveInput.magnitude > 0.1f)
+        Vector2 input = m_input.GetMoveInput();
+        float currensSpeed = m_motor.GetCurrentSpeed();
+
+        if (input.magnitude > 0.1f)
         {
             m_playerAnimation.SetMultiplier(m_motor.SpeedRatio());
         }
@@ -116,11 +128,9 @@ public class PlayerController : MonoBehaviour
         }
 
 
-        m_playerAnimation.MoveAnimation(m_input.MoveInput,
+        m_playerAnimation.MoveAnimation(input,
             m_currentMoveState,
-            m_motor.CurrentSpeed
+            currensSpeed
             );
-
-        m_playerAnimation.StartTurn(m_motor.IsStartTurn);
     }
 }

@@ -7,25 +7,27 @@ public class ReadPlayerInput : MonoBehaviour
     public event Action OnCrouchPressed;
     public event Action OnJumpPressed;
     public event Action OnAttackPressed;
+    public event Action OnAssassinated;
+    public event Action<bool> OnRunPressing;
 
-    public Vector2 MoveInput { get; private set; }
-    public bool IsRunPressed { get; private set; }
+    private Vector2 m_moveInput;
 
     public void OnMove(InputAction.CallbackContext context)
     {
-        MoveInput = context.ReadValue<Vector2>();
+        m_moveInput = context.ReadValue<Vector2>();
+    }
+
+    public Vector2 GetMoveInput()
+    {
+        return m_moveInput;
     }
 
     public void OnRun(InputAction.CallbackContext context)
     {
         if (context.started)
-        {
-            IsRunPressed = true;
-        }
+            OnRunPressing?.Invoke(true);
         else if (context.canceled)
-        {
-            IsRunPressed = false;
-        }
+            OnRunPressing?.Invoke(false);
     }
 
     public void OnCrouch(InputAction.CallbackContext context)
@@ -44,5 +46,12 @@ public class ReadPlayerInput : MonoBehaviour
     {
         if (context.started)
             OnAttackPressed?.Invoke();
+    }
+
+    public void OnAssassinate(InputAction.CallbackContext context)
+    {
+        if (context.started)
+            OnAssassinated?.Invoke();
+
     }
 }

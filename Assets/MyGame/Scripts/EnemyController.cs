@@ -12,7 +12,7 @@ public class PatrolPointData
 
 [RequireComponent(typeof(NavMeshAgent))]
 
-public class EnemyController : MonoBehaviour
+public class EnemyController : MonoBehaviour,IAssassinateable,IDamageable
 {
     [SerializeField] private EnemyData m_data;
     [SerializeField] private float m_lightPow;
@@ -36,17 +36,20 @@ public class EnemyController : MonoBehaviour
     private float m_brightness;
     private const float MAX_VIEW_SCORE = 40f;
     private const float CHECK_VIEW_INTERVAL = 0.2f;
+    private float m_totalScore;
 
-    public float TotalScore { get; private set; }
+    public Transform OriginTransform { get; private set; }
     public event Action<EnemyController> OnScoreChanged;
 
 
     private void Awake()
     {
+        OriginTransform = this.transform;
+
         m_agent = GetComponent<NavMeshAgent>();
 
         m_status = new EnemyStatus(m_data);
-        m_core = new EnemyCore(m_status, this.transform);
+        m_core = new EnemyCore(m_status);
         m_motor = new EnemyMotor(m_status, m_agent, m_pointData);
         m_viewTarget = new ViewTarget(m_viewTargetProfile);
         m_lightEvaluator = new LightVisibilityEvaluator();
@@ -64,7 +67,7 @@ public class EnemyController : MonoBehaviour
     {
         m_player = player;
         m_lightEvaluator.GetLights(checks, m_lightPow, m_distancePow);
-        m_viewTarget.GetTarget(m_player.transform);
+        m_viewTarget.SetTarget(m_player.transform);
     }
 
     /// =======================================================================
@@ -136,8 +139,8 @@ public class EnemyController : MonoBehaviour
             Time.deltaTime
             );
         Debug.Log($"{isSee}..{viewScore}..{delta}");
-        TotalScore += delta;
-        TotalScore = Mathf.Clamp(TotalScore, 0f, MAX_VIEW_SCORE);
+        m_totalScore += delta;
+        m_totalScore = Mathf.Clamp(m_totalScore, 0f, MAX_VIEW_SCORE);
 
         OnScoreChanged?.Invoke(this);
     }
@@ -157,10 +160,10 @@ public class EnemyController : MonoBehaviour
     void ChangeAlertStateByScore()
     {
         //発見スコアの最大値に対する割合で警戒状態を変更.
-        float scorePercentage = (TotalScore / MAX_VIEW_SCORE);
+        float scorePercentage = (m_totalScore / MAX_VIEW_SCORE);
 
         //プレイヤーを捜索中でないときかつ警戒状態に移行する割合以下.
-        if (m_motor.MovingState != EnemyMoveState.Search && scorePercentage < m_percentageOfChangeCautionState)
+        if (m_motor.GetMoveState() != EnemyMoveState.Search && scorePercentage < m_percentageOfChangeCautionState)
         {
             m_alertState = AlertState.Normal;
         }
@@ -177,6 +180,11 @@ public class EnemyController : MonoBehaviour
         }
     }
 
+    public float GetTotalScore()
+    {
+        return m_totalScore;
+    }
+
     void ChangeBehaviour()
     {
         switch (m_alertState)
@@ -191,6 +199,16 @@ public class EnemyController : MonoBehaviour
                 m_motor.Chase();
                 break;
         }
+    }
+
+    public void BeAssasinate()
+    {
+
+    }
+
+    public void TakeDamage(int value)
+    {
+        m_core.TakeDamage(value);
     }
 
     private void Update()

@@ -104,6 +104,15 @@
                     "processors": "",
                     "interactions": "",
                     "initialStateCheck": true
+                },
+                {
+                    "name": "Assassinate",
+                    "type": "Button",
+                    "id": "8afb4570-bc2a-4fb6-b84e-4d09fabe5662",
+                    "expectedControlType": "",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": false
                 }
             ],
             "bindings": [
@@ -423,6 +432,17 @@
                     "processors": "DeltaTimeScale,InvertVector2(invertX=false),ScaleVector2(x=0.5,y=0.5)",
                     "groups": "",
                     "action": "Look",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "f7e63302-5019-4d9a-8481-98fc022ae24e",
+                    "path": "<Mouse>/middleButton",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "Assassinate",
                     "isComposite": false,
                     "isPartOfComposite": false
                 }
