@@ -32,5 +32,5 @@ public class EnemyCore
             m_status.Hp = 0;
     }
 
-    public bool IsDead() { return m_status.Hp < 0; }
+    public bool IsDead() { return m_status.Hp <= 0; }
 }

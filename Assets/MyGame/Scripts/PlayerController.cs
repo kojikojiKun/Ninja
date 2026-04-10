@@ -5,7 +5,8 @@ using System.Collections.Generic;
 public class PlayerController : MonoBehaviour,IDamageable
 {
     [SerializeField] private PlayableEntityData m_data;
-    [SerializeField] private ViewTargetProfile m_viewProfile;
+    [SerializeField] private ViewProfile m_viewProfile;
+    [SerializeField] private Transform m_viewOrigin;
 
     private CharacterController m_characterController;
     private PlayableEntityStatus m_status;
@@ -33,13 +34,12 @@ public class PlayerController : MonoBehaviour,IDamageable
         m_motor = new PlayerMotor(m_status, m_characterController);
         m_combat = new PlayerCombat();
         m_playerAnimation = new PlayerAnimation(m_animator);
-        m_viewTarget = new ViewTarget(m_viewProfile);
+        m_viewTarget = new ViewTarget(m_viewProfile,m_viewOrigin);
     }
 
     public void Initialize(Camera camera)
     {
         m_motor.SetCamera(camera.transform);
-        m_assasinateRange.SetPlayerPos(this.transform);
     }
 
     private void OnEnable()
@@ -82,12 +82,10 @@ public class PlayerController : MonoBehaviour,IDamageable
 
     void HandleAssassinate()
     {
-        IAssassinateable closest = m_assasinateRange.GetClosest();
+        IAssassinateable closest = m_assasinateRange.GetClosest(this.transform);
         if (closest == null)
             return;
-
-        m_viewTarget.SetTarget(closest.OriginTransform);
-        m_combat.Assassinate(closest, m_viewTarget.IsSeeTarget());
+        m_combat.Assassinate(closest, m_viewTarget.IsSeeTarget(closest.OriginTransform));
     }
 
     public void TakeDamage(int value)

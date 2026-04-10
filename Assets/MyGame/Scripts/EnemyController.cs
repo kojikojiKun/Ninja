@@ -14,30 +14,26 @@ public class PatrolPointData
 
 public class EnemyController : MonoBehaviour, IAssassinateable, IDamageable
 {
-    [SerializeField] private EnemyData m_data;
-    [SerializeField] private float m_lightPow;
-    [SerializeField] private float m_distancePow;
-    [SerializeField] private float m_decSpeed;
+    [SerializeField] private DiscoveryScoreCoefficients m_coefficients;
     [SerializeField] private PatrolPointData[] m_pointData;
-    [SerializeField] private ViewTargetProfile m_viewTargetProfile;
+    [SerializeField] private EnemyData m_data;
+    [SerializeField] private ViewProfile m_viewProfile;
+    [SerializeField] private Transform m_viewOrigin;
     [SerializeField, Range(0, 99.9999f)] private float m_percentageOfChangeCautionState;
 
     private EnemyStatus m_status;
     private EnemyCore m_core;
     private NavMeshAgent m_agent;
     private EnemyMotor m_motor;
+    private EnemyDiscoveryScore m_enemyScore;
     private ViewTarget m_viewTarget;
-    private LightVisibilityEvaluator m_lightEvaluator;
-    private List<LightZone> m_lightZones = new List<LightZone>();
+    private LightZoneTrigger m_lightTrigger;
+    private HearNoiseTrigger m_noiseTrigger;
     private Timer m_timer;
 
     private AlertState m_alertState;
     private PlayerController m_player;
-    private float m_brightness;
-    private const float MAX_VIEW_SCORE = 40f;
     private const float CHECK_VIEW_INTERVAL = 0.2f;
-    private float m_totalScore;
-
     public Transform OriginTransform { get; private set; }
     public event Action<EnemyController> OnScoreChanged;
 
@@ -47,15 +43,16 @@ public class EnemyController : MonoBehaviour, IAssassinateable, IDamageable
         OriginTransform = this.transform;
 
         m_agent = GetComponent<NavMeshAgent>();
+        m_lightTrigger = GetComponentInChildren<LightZoneTrigger>();
+        m_noiseTrigger = GetComponentInChildren<HearNoiseTrigger>();
 
         m_status = new EnemyStatus(m_data);
         m_core = new EnemyCore(m_status);
         m_motor = new EnemyMotor(m_status, m_agent, m_pointData);
-        m_viewTarget = new ViewTarget(m_viewTargetProfile);
-        m_lightEvaluator = new LightVisibilityEvaluator();
+        m_enemyScore = new EnemyDiscoveryScore(m_viewProfile, m_coefficients, OriginTransform);
+        m_viewTarget = new ViewTarget(m_viewProfile, m_viewOrigin);
         m_timer = new Timer();
 
-        m_viewTarget.OverrideValues(m_status.ViewAngle, m_status.ViewDistance);
         //パーセントを少数になおす。
         if (m_percentageOfChangeCautionState > 0)
             m_percentageOfChangeCautionState /= 100;
@@ -63,127 +60,49 @@ public class EnemyController : MonoBehaviour, IAssassinateable, IDamageable
         m_timer.Reset();
     }
 
+    private void OnEnable()
+    {
+        m_lightTrigger.OnLightEnter += OnLightEnter;
+        m_lightTrigger.OnLightExit += OnLigtExit;
+        m_noiseTrigger.OnHearNoise += OnHearNoise;
+    }
+
+    private void OnDisable()
+    {
+        m_lightTrigger.OnLightEnter -= OnLightEnter;
+        m_lightTrigger.OnLightExit -= OnLigtExit;
+        m_noiseTrigger.OnHearNoise -= OnHearNoise;
+    }
+
     public void Initialize(List<LightToCheck> checks, PlayerController player)
     {
         m_player = player;
-        m_lightEvaluator.GetLights(checks, m_lightPow, m_distancePow);
-        m_viewTarget.SetTarget(m_player.transform);
+        m_enemyScore.RegistLights(checks);
     }
 
-    /// =======================================================================
-    /// ColliderTrigger
-    /// =======================================================================
-    private void OnTriggerEnter(Collider other)
-    {
-        //プレイヤーの騒音オブジェクトに接触.
-        if (m_alertState != AlertState.Caution && other.CompareTag("Noise"))
-            HandleNoise(other.gameObject.transform.position);
-
-        if (other.CompareTag("Player"))
-            HandlePlayer();
-
-        if (other.TryGetComponent(out LightZone zone))
-            HandleLightEnter(zone);
-    }
-
-    void HandleNoise(Vector3 position)
+    public void OnHearNoise()
     {
         m_alertState = AlertState.Caution;
-        m_motor.GetTarget(position);
     }
 
-    void HandlePlayer()
+    public void OnLightEnter(LightZone zone)
     {
-        m_alertState = AlertState.Discover;
+        m_enemyScore.RegistLightZone(zone);
     }
 
-    void HandleLightEnter(LightZone zone)
+    public void OnLigtExit(LightZone zone)
     {
-        m_lightZones.Add(zone);
-        m_brightness = m_lightEvaluator.CalkBrightness(m_lightZones);
-    }
-
-    private void OnTriggerExit(Collider other)
-    {
-        if (other.TryGetComponent(out LightZone zone))
-        {
-            m_lightZones.Remove(zone);
-            m_brightness = m_lightEvaluator.CalkBrightness(m_lightZones);
-        }
-    }
-    /// =======================================================================
-    /// ColliderTrigger Finish <summary>
-    /// =======================================================================
-
-    void CheckViewingScore()
-    {
-        if (m_player == null)
-            return;
-
-
-        if (!m_timer.IsOutOfDuration(CHECK_VIEW_INTERVAL))
-            return;
-
-        bool isSee = m_viewTarget.IsSeeTarget();
-
-        float viewScore = m_lightEvaluator.EaseOfViewingScore(
-                this.transform.position,
-                m_player.gameObject.transform.position,
-                m_brightness,
-                m_status.ViewDistance
-                );
-
-        float delta = CalcScore(
-            isSee,
-            viewScore,
-            Time.deltaTime
-            );
-
-        Debug.Log($"{isSee}..{viewScore}..{delta}");
-        m_totalScore += delta;
-        m_totalScore = Mathf.Clamp(m_totalScore, 0f, MAX_VIEW_SCORE);
-
-        OnScoreChanged?.Invoke(this);
-    }
-
-    public float CalcScore(bool isSee, float viewScore, float deltaTime)
-    {
-        if (isSee)
-        {
-            return viewScore * deltaTime;
-        }
-        else
-        {
-            return -m_decSpeed * deltaTime;
-        }
+        m_enemyScore.UnRegistLightZone(zone);
     }
 
     void ChangeAlertStateByScore()
     {
-        //発見スコアの最大値に対する割合で警戒状態を変更.
-        float scorePercentage = (m_totalScore / MAX_VIEW_SCORE);
 
-        //プレイヤーを捜索中でないときかつ警戒状態に移行する割合以下.
-        if (m_motor.GetMoveState() != EnemyMoveState.Search && scorePercentage < m_percentageOfChangeCautionState)
-        {
-            m_alertState = AlertState.Normal;
-        }
-        //警戒状態に移行する割合以上100％以下.
-        else if (scorePercentage >= m_percentageOfChangeCautionState && scorePercentage < 1f)
-        {
-            m_motor.GetTarget(m_player.gameObject.transform.position);
-            m_alertState = AlertState.Caution;
-        }
-        //100%.
-        else
-        {
-            m_alertState = AlertState.Discover;
-        }
     }
 
     public float GetTotalScore()
     {
-        return m_totalScore;
+        return m_enemyScore.GetTotalScore();
     }
 
     void ChangeBehaviour()
@@ -201,9 +120,10 @@ public class EnemyController : MonoBehaviour, IAssassinateable, IDamageable
                 break;
         }
     }
+
     public void TakeDamage(int value)
     {
-        m_core.TakeDamage(value);
+        // m_core.TakeDamage(value);
     }
 
     public void BeAssassinate()
@@ -214,8 +134,19 @@ public class EnemyController : MonoBehaviour, IAssassinateable, IDamageable
     private void Update()
     {
         if (m_core.IsDead() == true)
+        {
+            Debug.Log("dead");
             return;
-        CheckViewingScore();
+        }
+
+        if (!m_timer.IsOutOfDuration(CHECK_VIEW_INTERVAL))
+        {
+            Transform target = m_player.gameObject.transform;
+            bool isSeeTarget = m_viewTarget.IsSeeTarget(target);
+
+            m_enemyScore.CheckScore(target, isSeeTarget);
+        }
+
         ChangeAlertStateByScore();
         ChangeBehaviour();
     }

@@ -4,27 +4,17 @@ using UnityEngine;
 public class LightVisibilityEvaluator
 {
     private LayerMask m_shadowBlock;
-    private List<LightToCheck> m_lightsToChecks = new List<LightToCheck>();
-    private List<Light> m_lights = new List<Light>();
     private const float DEFAULT_DARK_VALUE = 0.2f;
     private const float MIN_LIGHT_SCORE = 1;
-    private float m_lightPow;
-    private float m_distancePow;
 
-    public void GetLights(List<LightToCheck> lightToChecks, float lightPow, float distancePow)
-    {
-        m_lightsToChecks = lightToChecks;
-        foreach (var check in m_lightsToChecks)
-        {
-            Light light = check.Light;
-            m_lights.Add(light);
-        }
-
-        m_lightPow = lightPow;
-        m_distancePow = distancePow;
-    }
-
-    public float EaseOfViewingScore(Vector3 evalTarget, Vector3 targetPos, float brightness, float ViewDistance)
+    public float EaseOfViewingScore(Vector3 evalTarget,
+        Vector3 targetPos, 
+        float brightness,
+        float viewDistance
+        ,float lightExp,
+        float distanceExp,
+        List<Light> lights
+        )
     {
         if (brightness == 0)
             brightness = 0.2f;
@@ -32,12 +22,12 @@ public class LightVisibilityEvaluator
         //0除算回避のためMathf.Max(distance,0.1f)を使用.
         float distance = Mathf.Max(Vector3.Distance(evalTarget, targetPos), 0.1f);
 
-        float lightScore = GetLightScore(targetPos);
+        float lightScore = GetLightScore(targetPos, lights);
 
         //targetとの距離を1から10の割合で返す.
-        float distanceScore = Mathf.Lerp(0.1f, 1f, (distance / ViewDistance));
+        float distanceScore = Mathf.Lerp(0.1f, 1f, (distance / viewDistance));
 
-        float totalScore = Mathf.Pow((brightness * lightScore), m_lightPow) / Mathf.Pow(distanceScore, m_distancePow);
+        float totalScore = Mathf.Pow((brightness * lightScore), lightExp) / Mathf.Pow(distanceScore, distanceExp);
 
         return totalScore;
     }
@@ -60,10 +50,10 @@ public class LightVisibilityEvaluator
     }
 
     //Lightのrangeの中心に近いほど高いスコアを返す.
-    public float GetLightScore(Vector3 targetPos)
+    public float GetLightScore(Vector3 targetPos,List<Light> lights)
     {
         float total = MIN_LIGHT_SCORE;
-        foreach (var light in m_lights)
+        foreach (var light in lights)
         {
             if (!light.enabled)
                 continue;

@@ -586,14 +586,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_data: {fileID: 11400000, guid: 49ff64e5dc4540c479fde039a1a1f10d, type: 2}
-  m_viewProfile:
-    RayOrigin: {fileID: 4078779256755596601}
-    Mask:
-      serializedVersion: 2
-      m_Bits: 1536
-    TargetTagName: Enemy
-    Angle: 60
-    Distanece: 20
+  m_viewProfile: {fileID: 11400000, guid: 13935054b091d214e848131b3ccb3a26, type: 2}
+  m_viewOrigin: {fileID: 4078779256755596601}
 --- !u!1 &8489805688509647516
 GameObject:
   m_ObjectHideFlags: 0

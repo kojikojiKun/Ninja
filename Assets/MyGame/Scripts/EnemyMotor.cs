@@ -84,6 +84,28 @@ public class EnemyMotor
         return m_movingState;
     }
 
+    void ChangeAlertStateByScore(float scorePercentage)
+    {
+       /* float limit = m_status.CautionScorePercentage;
+        //プレイヤーを捜索中でないときかつ警戒状態に移行する割合以下.
+        if (m_movingState != EnemyMoveState.Search && scorePercentage < limit)
+        {
+            m_alertState = AlertState.Normal;
+        }
+        //警戒状態に移行する割合以上100％以下.
+        else if (scorePercentage >= limit && scorePercentage < 1f)
+        {
+            m_motor.GetTarget(m_player.gameObject.transform.position);
+            m_alertState = AlertState.Caution;
+        }
+        //100%.
+        else
+        {
+            m_alertState = AlertState.Discover;
+        }
+       */
+    }
+
     public void Patrol()
     {
         if (!HasArrival())

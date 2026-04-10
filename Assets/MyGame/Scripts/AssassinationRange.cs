@@ -4,12 +4,6 @@ using System.Collections.Generic;
 public class AssassinationRange : MonoBehaviour
 {
     private List<IAssassinateable> m_enemiesWithinRange = new List<IAssassinateable>();
-    private Transform m_playerPos;
-
-    public void SetPlayerPos(Transform pos)
-    {
-        m_playerPos = pos;
-    }
 
     private void OnTriggerEnter(Collider other)
     {
@@ -28,9 +22,9 @@ public class AssassinationRange : MonoBehaviour
     }
 
     //Colliderì‡ÇÃç≈Ç‡ãﬂÇ¢ìGÇï‘Ç∑.
-    public IAssassinateable GetClosest()
+    public IAssassinateable GetClosest(Transform transform)
     {
-        if (m_enemiesWithinRange.Count == 0 || m_playerPos == null)
+        if (m_enemiesWithinRange.Count == 0 || transform == null)
             return null;
 
         IAssassinateable closest = null;
@@ -38,7 +32,7 @@ public class AssassinationRange : MonoBehaviour
 
         foreach (var enemy in m_enemiesWithinRange)
         {
-            float sqrDistance = (enemy.OriginTransform.position - m_playerPos.position).sqrMagnitude;
+            float sqrDistance = (enemy.OriginTransform.position - transform.position).sqrMagnitude;
 
             if (sqrDistance < minDistance)
             {

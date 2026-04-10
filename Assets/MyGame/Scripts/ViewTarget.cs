@@ -1,47 +1,22 @@
 using UnityEngine;
 
-[System.Serializable]
-public class ViewTargetProfile
-{
-    public Transform RayOrigin;
-    public LayerMask Mask;
-    public string TargetTagName;
-    [Header("Enemyは0にする")]
-    public float Angle;
-    public float Distanece;
-}
-
 public class ViewTarget
 {
-    private Transform m_target;
     private Transform m_origin;
     private float m_angle;
     private float m_distance;
     private LayerMask m_sightMask;
     private string m_targetTagName;
+    private Vector3 m_heightOffset;
 
-    public ViewTarget(ViewTargetProfile profile)
+    public ViewTarget(ViewProfile profile,Transform rayOrigin)
     {
-        m_origin = profile.RayOrigin;
+        m_origin = rayOrigin;
         m_sightMask = profile.Mask;
         m_targetTagName = profile.TargetTagName;
-
-        if (m_distance == 0 || m_angle == 0)
-            return;
-
         m_angle = profile.Angle;
         m_distance = profile.Distanece;
-    }
-
-    public void SetTarget(Transform target)
-    {
-        m_target = target;
-    }
-
-    public void OverrideValues(float angle, float distance)
-    {
-        m_angle = angle;
-        m_distance = distance;
+        m_heightOffset = Vector3.up * profile.HeightOffset;
     }
 
     bool IsWithinViewAngle(Vector3 dir)
@@ -61,12 +36,12 @@ public class ViewTarget
     }
 
     //一定間隔で視野内にターゲットがいるかどうかを判定.
-    public bool IsSeeTarget()
+    public bool IsSeeTarget(Transform target)
     {
-        if (m_target == null || m_origin == null || m_distance == 0 || m_angle == 0)
+        if (target == null || m_origin == null)
             return false;
 
-        Vector3 dir = (m_target.position + Vector3.up * 1.5f) - m_origin.position;
+        Vector3 dir = (target.position + m_heightOffset) - m_origin.position;
 
         if (!IsWithinViewAngle(dir) || !IsWithinDistance(dir))
             return false;
@@ -81,11 +56,8 @@ public class ViewTarget
             ))
         {
             if (hit.collider.CompareTag(m_targetTagName))
-            {
                 return true;
-            }
         }
-
         return false;
     }
 }

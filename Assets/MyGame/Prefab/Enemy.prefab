@@ -137,7 +137,8 @@ GameObject:
   - component: {fileID: 227822290010534871}
   - component: {fileID: 2296491248731654876}
   - component: {fileID: 6812146386250841030}
-  - component: {fileID: 8910247256635375342}
+  - component: {fileID: 1673179484676586101}
+  - component: {fileID: 2050084191000597092}
   m_Layer: 10
   m_Name: Enemy
   m_TagString: Enemy
@@ -154,7 +155,7 @@ Transform:
   m_GameObject: {fileID: 8440819683742700514}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0.6211546, z: 0, w: 0.783688}
-  m_LocalPosition: {x: -9.848267, y: 1.08, z: 1.2841083}
+  m_LocalPosition: {x: -9.848267, y: 1.306, z: 1.2841083}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
@@ -302,39 +303,36 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 160747ba37730d341bd4bb918c6b464d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::NewEnemyController
-  m_data: {fileID: 11400000, guid: a95de64d511737744999bb80646d34f8, type: 2}
-  m_lightPow: 0.2
-  m_distancePow: 0.5
-  m_decSpeed: 30
+  m_coefficients:
+    LightExponent: 0.2
+    DistanceExponent: 0.5
+    ScoreReductionSpeed: 30
   m_pointData: []
-  m_viewTargetProfile:
-    RayOrigin: {fileID: 2849700565593398188}
-    Mask:
-      serializedVersion: 2
-      m_Bits: 768
-    TargetTagName: Player
-    Angle: 0
-    Distanece: 0
+  m_data: {fileID: 11400000, guid: a95de64d511737744999bb80646d34f8, type: 2}
+  m_viewProfile: {fileID: 11400000, guid: 1b55d753acb499e498d71a7dc6193c2b, type: 2}
+  m_viewOrigin: {fileID: 2849700565593398188}
   m_percentageOfChangeCautionState: 35
---- !u!95 &8910247256635375342
-Animator:
-  serializedVersion: 7
+--- !u!114 &1673179484676586101
+MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 8440819683742700514}
   m_Enabled: 1
-  m_Avatar: {fileID: 0}
-  m_Controller: {fileID: 0}
-  m_CullingMode: 0
-  m_UpdateMode: 0
-  m_ApplyRootMotion: 0
-  m_LinearVelocityBlending: 0
-  m_StabilizeFeet: 0
-  m_AnimatePhysics: 0
-  m_WarningMessage: 
-  m_HasTransformHierarchy: 1
-  m_AllowConstantClipSamplingOptimization: 1
-  m_KeepAnimatorStateOnDisable: 0
-  m_WriteDefaultValuesOnDisable: 0
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7548f83e7f50a5245a95f55f43323d3e, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::HearNoiseTrigger
+--- !u!114 &2050084191000597092
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8440819683742700514}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2926fec3dc9f3734ca9a080af61508c7, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::LightZoneTrigger
