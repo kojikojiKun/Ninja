@@ -1,5 +1,4 @@
 using UnityEngine;
-using System.Collections.Generic;
 
 [RequireComponent(typeof(CharacterController))]
 public class PlayerController : MonoBehaviour,IDamageable
@@ -16,13 +15,18 @@ public class PlayerController : MonoBehaviour,IDamageable
     private PlayerCombat m_combat;
     private SoundRangeController m_soundRangeController;
     private Animator m_animator;
-    private PlayerAnimation m_playerAnimation;
+    private PlayerAnimator m_playerAnimator;
     private AssassinationRange m_assasinateRange;
     private ViewTarget m_viewTarget;
+    private CalcTargetToSelfDirection m_calcDirection;
     private bool m_isRunPressing;
+
+    public Transform OriginTransform { get; private set; }
 
     private void Awake()
     {
+        OriginTransform = this.transform;
+
         m_characterController = GetComponent<CharacterController>();
         m_soundRangeController = GetComponent<SoundRangeController>();
         m_input = GetComponent<ReadPlayerInput>();
@@ -31,10 +35,11 @@ public class PlayerController : MonoBehaviour,IDamageable
 
         m_status = new PlayableEntityStatus(m_data);
         m_core = new PlayerCore(m_status);
-        m_motor = new PlayerMotor(m_status, m_characterController);
+        m_motor = new PlayerMotor(m_status, m_characterController,OriginTransform);
         m_combat = new PlayerCombat();
-        m_playerAnimation = new PlayerAnimation(m_animator);
+        m_playerAnimator = new PlayerAnimator(m_animator);
         m_viewTarget = new ViewTarget(m_viewProfile,m_viewOrigin);
+        m_calcDirection = new CalcTargetToSelfDirection();
     }
 
     public void Initialize(Camera camera)
@@ -82,10 +87,25 @@ public class PlayerController : MonoBehaviour,IDamageable
 
     void HandleAssassinate()
     {
+        //最も近い暗殺可能対象を取得.
         IAssassinateable closest = m_assasinateRange.GetClosest(this.transform);
         if (closest == null)
             return;
-        m_combat.Assassinate(closest, m_viewTarget.IsSeeTarget(closest.OriginTransform));
+
+        AssassinateContext context = new AssassinateContext
+        {
+            Target = closest,
+            CanSee = m_viewTarget.IsSeeTarget(closest.OriginTransform),
+            Direction = m_calcDirection.GetTargetToSelfDirection(closest.OriginTransform, OriginTransform),
+            DataMap = closest.DataMap
+        };
+
+        m_combat.TryAssassinate(context);
+        bool isSuccess = m_combat.IsSuccess();
+        Transform snapPoint = m_combat.GetSnapPoint(context);
+
+        m_motor.MoveToTargetPosition(snapPoint,isSuccess);
+        m_playerAnimator.Assassinate(context.Direction, isSuccess);
     }
 
     public void TakeDamage(int value)
@@ -99,6 +119,7 @@ public class PlayerController : MonoBehaviour,IDamageable
         if (m_core.IsDead() == true)
             return;
 
+        //プレイヤーの移動状況を決定する.
         PlayerMoveState state = m_motor.GetState();
         Vector2 moveInput = m_input.GetMoveInput();
         bool run = m_isRunPressing;

@@ -12,16 +12,27 @@ public class PlayerMotor
     private const float GRAVITY = -9.81f;
     private float m_velocity_Y = 0f;
     private float m_currentSpeed;
+    private Transform m_playerPos;
 
-    public PlayerMotor(PlayableEntityStatus status, CharacterController controller)
+    public PlayerMotor(PlayableEntityStatus status, CharacterController controller,Transform playerPos)
     {
         m_status = status;
         m_characterController = controller;
+        m_playerPos = playerPos;
     }
 
     public void SetCamera(Transform camera)
     {
         m_cameraPos = camera;
+    }
+
+    public void MoveToTargetPosition(Transform target,bool isSuccess)
+    {
+        if (target == null || !isSuccess)
+            return;
+
+        Debug.Log($"{m_playerPos}...{target}");
+        m_playerPos.position = target.position;
     }
 
     public float SpeedRatio()
@@ -34,6 +45,7 @@ public class PlayerMotor
 
     public void Acceleration()
     {
+        //最大速度に向けて加速.
         m_currentSpeed = Mathf.Lerp(
             m_currentSpeed,
             m_targetSpeed,
@@ -46,10 +58,11 @@ public class PlayerMotor
 
     public void Deceleraiton()
     {
+        //一定時間でスピードを0にするための係数を計算.
         float diff = m_currentSpeed;
-
         float decel = diff / 0.5f;
 
+        //0に向けて減速.
         m_currentSpeed = Mathf.Lerp(
             m_currentSpeed,
             0f,
@@ -81,6 +94,7 @@ public class PlayerMotor
 
     Vector3 FreeFall()
     {
+        //接地中に地面に押し付ける.
         if (m_characterController.isGrounded && m_velocity_Y < 0)
             m_velocity_Y = -2f;
 
@@ -129,14 +143,17 @@ public class PlayerMotor
 
     public void ToggleCrouch()
     {
+        //しゃがみ切り替え.
         m_isCrouching = !m_isCrouching;
     }
 
     public void SetState(Vector2 input, bool IsRunPressing)
     {
+        //走る入力をしゃがみ入力より優先する.
         if (IsRunPressing && m_isCrouching)
             m_isCrouching = false;
 
+        //入力状況で移動状態を決定する.
         if (input.sqrMagnitude < 0.1f)
         {
             m_currentState = m_isCrouching
@@ -164,6 +181,7 @@ public class PlayerMotor
 
     public void SetTargetSpeed()
     {
+        //stateに応じた移動速度に設定.
         switch (m_currentState)
         {
             case PlayerMoveState.Walk:

@@ -10,8 +10,8 @@ public class LightVisibilityEvaluator
     public float EaseOfViewingScore(Vector3 evalTarget,
         Vector3 targetPos, 
         float brightness,
-        float viewDistance
-        ,float lightExp,
+        float viewDistance,
+        float lightExp,
         float distanceExp,
         List<Light> lights
         )
