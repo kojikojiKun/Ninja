@@ -1,10 +1,21 @@
 using UnityEngine;
+using System;
 using System.Collections.Generic;
 
 public class Registries : MonoBehaviour
-{
+{   
     private List<EnemyController> m_enemies = new List<EnemyController>();
     private List<LightToCheck> m_lights  = new List<LightToCheck>();
+    private List<Collider> m_grapplePoints = new List<Collider>();
+
+    public static Registries Instance;
+    public static event Action OnReady;
+
+    private void Awake()
+    {
+        Instance = this;
+        OnReady?.Invoke();
+    }
 
     public void EnemyRegister(EnemyController enemy)
     {
@@ -14,6 +25,11 @@ public class Registries : MonoBehaviour
     public void LightRegister(LightToCheck light)
     {
         m_lights.Add(light);
+    }
+
+    public void GrapplePointRegister(Collider point)
+    {
+        m_grapplePoints.Add(point);
     }
 
     public List<EnemyController> GetEnemies()
@@ -26,13 +42,8 @@ public class Registries : MonoBehaviour
         return m_lights;
     }
 
-    public void EnemyUnRegister(EnemyController enemy)
+    public List<Collider> GetGrapplePoints()
     {
-        m_enemies.Remove(enemy);
-    }
-
-    public void LightUnRegister(LightToCheck light)
-    {
-        m_lights.Remove(light);
+        return m_grapplePoints;
     }
 }

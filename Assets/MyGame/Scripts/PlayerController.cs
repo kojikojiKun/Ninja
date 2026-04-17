@@ -19,6 +19,7 @@ public class PlayerController : MonoBehaviour,IDamageable
     private AssassinationRange m_assasinateRange;
     private ViewTarget m_viewTarget;
     private CalcTargetToSelfDirection m_calcDirection;
+    private Grappling m_grappling;
     private bool m_isRunPressing;
 
     public Transform OriginTransform { get; private set; }
@@ -40,11 +41,13 @@ public class PlayerController : MonoBehaviour,IDamageable
         m_playerAnimator = new PlayerAnimator(m_animator);
         m_viewTarget = new ViewTarget(m_viewProfile,m_viewOrigin);
         m_calcDirection = new CalcTargetToSelfDirection();
+        m_grappling = new Grappling();
     }
 
     public void Initialize(Camera camera)
     {
         m_motor.SetCamera(camera.transform);
+        m_grappling.SetCamera(camera);
     }
 
     private void OnEnable()
@@ -52,6 +55,7 @@ public class PlayerController : MonoBehaviour,IDamageable
         m_input.OnJumpPressed += HandleJump;
         m_input.OnRunPressing += HandleRun;
         m_input.OnCrouchPressed += HandleCrouch;
+        m_input.OnGrapplingPressed += HandleGrappling;
         m_input.OnAttackPressed += HandleAttack;
         m_input.OnAssassinated += HandleAssassinate;
     }
@@ -61,6 +65,7 @@ public class PlayerController : MonoBehaviour,IDamageable
         m_input.OnJumpPressed -= HandleJump;
         m_input.OnRunPressing -= HandleRun;
         m_input.OnCrouchPressed -= HandleCrouch;
+        m_input.OnGrapplingPressed -= HandleGrappling;
         m_input.OnAttackPressed -= HandleAttack;
         m_input.OnAssassinated -= HandleAssassinate;
     }
@@ -78,6 +83,11 @@ public class PlayerController : MonoBehaviour,IDamageable
     void HandleJump()
     {
         m_motor.Jump();
+    }
+
+    void HandleGrappling()
+    {
+
     }
 
     void HandleAttack()
@@ -102,11 +112,11 @@ public class PlayerController : MonoBehaviour,IDamageable
 
         m_combat.TryAssassinate(context);
         bool isSuccess = m_combat.IsSuccess();
-        Transform snapPoint = m_combat.GetSnapPoint(context);
+        Transform snapPoint = m_motor.GetSnapPoint(context);
 
-        m_motor.MoveToTargetPosition(snapPoint,isSuccess);
+        m_motor.MoveToAssassinatePosition(snapPoint,isSuccess);
         m_playerAnimator.Assassinate(context.Direction, isSuccess);
-    }
+    }    
 
     public void TakeDamage(int value)
     {

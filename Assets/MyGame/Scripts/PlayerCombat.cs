@@ -22,19 +22,6 @@ public class PlayerCombat
         m_isSuccess = true;
     }
 
-    public Transform GetSnapPoint(AssassinateContext context)
-    {
-        foreach (var dict in context.DataMap)
-        {
-            if (dict.Value.Direction == context.Direction)
-            {
-                return dict.Value.SnapPoint;
-            }
-        }
-
-        return null;
-    }
-
     public bool IsSuccess()
     {
         return m_isSuccess;

@@ -26,7 +26,20 @@ public class PlayerMotor
         m_cameraPos = camera;
     }
 
-    public void MoveToTargetPosition(Transform target,bool isSuccess)
+    public Transform GetSnapPoint(AssassinateContext context)
+    {
+        foreach (var dict in context.DataMap)
+        {
+            if (dict.Value.Direction == context.Direction)
+            {
+                return dict.Value.SnapPoint;
+            }
+        }
+
+        return null;
+    }
+
+    public void MoveToAssassinatePosition(Transform target,bool isSuccess)
     {
         if (target == null || !isSuccess)
             return;

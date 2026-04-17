@@ -6,6 +6,7 @@ public class ReadPlayerInput : MonoBehaviour
 {
     public event Action OnCrouchPressed;
     public event Action OnJumpPressed;
+    public event Action OnGrapplingPressed;
     public event Action OnAttackPressed;
     public event Action OnAssassinated;
     public event Action<bool> OnRunPressing;
@@ -15,11 +16,6 @@ public class ReadPlayerInput : MonoBehaviour
     public void OnMove(InputAction.CallbackContext context)
     {
         m_moveInput = context.ReadValue<Vector2>();
-    }
-
-    public Vector2 GetMoveInput()
-    {
-        return m_moveInput;
     }
 
     public void OnRun(InputAction.CallbackContext context)
@@ -42,6 +38,12 @@ public class ReadPlayerInput : MonoBehaviour
             OnJumpPressed?.Invoke();
     }
 
+    public void OnGrappling(InputAction.CallbackContext context)
+    {
+        if (context.started)
+            OnGrapplingPressed?.Invoke();
+    }
+
     public void OnAttack(InputAction.CallbackContext context)
     {
         if (context.started)
@@ -53,5 +55,10 @@ public class ReadPlayerInput : MonoBehaviour
         if (context.started)
             OnAssassinated?.Invoke();
 
+    }
+    
+    public Vector2 GetMoveInput()
+    {
+        return m_moveInput;
     }
 }

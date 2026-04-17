@@ -46,7 +46,6 @@ public class EnemyController : MonoBehaviour, IAssassinateable, IDamageable
 
     public event Action<EnemyController> OnScoreChanged;
 
-
     private void Awake()
     {
         OriginTransform = this.transform;
@@ -80,6 +79,15 @@ public class EnemyController : MonoBehaviour, IAssassinateable, IDamageable
         m_lightTrigger.OnLightEnter += OnLightEnter;
         m_lightTrigger.OnLightExit += OnLigtExit;
         m_noiseTrigger.OnHearNoise += OnHearNoise;
+
+        if (Registries.Instance != null)
+        {
+            Registries.Instance.EnemyRegister(this);
+        }
+        else
+        {
+            Registries.OnReady += Regist;
+        }
     }
 
     private void OnDisable()
@@ -87,6 +95,12 @@ public class EnemyController : MonoBehaviour, IAssassinateable, IDamageable
         m_lightTrigger.OnLightEnter -= OnLightEnter;
         m_lightTrigger.OnLightExit -= OnLigtExit;
         m_noiseTrigger.OnHearNoise -= OnHearNoise;
+    }
+
+    void Regist()
+    {
+        Registries.OnReady -= Regist;
+        Registries.Instance.EnemyRegister(this);
     }
 
     public void Initialize(List<LightToCheck> checks, PlayerController player)
